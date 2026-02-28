@@ -164,6 +164,24 @@
             text-shadow: 0 0 5px rgba(76, 209, 168, 0.5);
         }
 
+        .example-btn {
+            display: inline-block;
+            color: #ff9f7f;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.95em;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: rgba(255, 159, 127, 0.1);
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .example-btn:hover {
+            background-color: rgba(255, 159, 127, 0.2);
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+
         /* --- 分页导航样式 --- */
         .pagination-nav {
             display: flex;
@@ -274,6 +292,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">ZeroMQ</h3>
                 <p class="library-description">ZeroMQ（简称 ZMQ）是一款高性能、异步、轻量级的消息传输库，并非传统意义上的消息队列 （如 RabbitMQ、Kafka）—— 它无中心 Broker（可自选实现），专注于底层消息传递机制，支持多种通信模式和传输协议，广泛用于低延迟、分布式 / 并发系统的消息通信。</p>
+                <a href="examples/zeromq.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://zeromq.org/" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -291,6 +310,7 @@
                 <span class="library-lang-tag">Go</span>
                 <h3 class="library-name">gRPC</h3>
                 <p class="library-description">gRPC 是一个高性能、开源的通用 RPC 框架，基于 HTTP/2 协议，支持多种语言，适用于构建分布式系统和微服务架构。</p>
+                <a href="examples/grpc.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://grpc.io/" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -307,6 +327,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">redis-plus-plus</h3>
                 <p class="library-description">redis-plus-plus 是一个现代 C++ 客户端库，用于连接和操作 Redis 数据库，提供了类型安全、异步和同步的 API，简化了 Redis 操作。</p>
+                <a href="examples/redis-plus-plus.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://github.com/sewenew/redis-plus-plus" target="_blank" class="library-url">了解更多</a>
             </div>
             
@@ -355,6 +376,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">SObjectizer</h3>
                 <p class="library-description">一个成熟的 C++ 框架，实现了 Actor、发布/订阅和 CSP 模型，用于简化并发和多线程应用程序的开发，性能稳定，已在生产环境验证。</p>
+                <a href="../sobjectizer.md" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://github.com/Stiffstream/sobjectizer" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -364,6 +386,7 @@
                 <span class="library-lang-tag">Lua</span>
                 <h3 class="library-name">sol2</h3>
                 <p class="library-description">一个现代、轻量、高性能的 C++17/20 头文件库，用于在 C++ 和 Lua 之间进行无缝交互，提供类型安全、高性能的绑定方案。</p>
+                <a href="../sol2.md" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://github.com/ThePhD/sol2" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -381,6 +404,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">nlohmann/json</h3>
                 <p class="library-description">一个非常流行的 C++ JSON 库，以直观的语法和高性能著称，使在 C++ 中处理 JSON 数据变得极其简单。</p>
+                <a href="examples/nlohmann-json.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://github.com/nlohmann/json" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -397,6 +421,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">SQLiteCpp</h3>
                 <p class="library-description">一个优雅的 C++ 封装库，用于简化对 SQLite 数据库的操作，提供 RAII 和异常安全的接口。</p>
+                <a href="examples/SQLiteCpp.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://github.com/SRombauts/SQLiteCpp" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -405,6 +430,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">cpp-httplib</h3>
                 <p class="library-description">一个简单易用的跨平台 C++ HTTP/HTTPS 库，仅需一个头文件即可快速搭建服务器或发起客户端请求。</p>
+                <a href="examples/cpp-httplib.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://github.com/yhirose/cpp-httplib" target="_blank" class="library-url">了解更多</a>
             </div>
 
@@ -454,6 +480,7 @@
                 <span class="library-lang-tag">C++</span>
                 <h3 class="library-name">cpr</h3>
                 <p class="library-description">C++ Requests 是一个基于libcurl 的简单封装,现代、易用的 C++ HTTP 库，基于 libcurl 构建，提供简洁的 API 和良好的跨平台支持。其灵感来源于优秀的Python Requests项目</p>
+                <a href="examples/cpr.html" target="_blank" class="example-btn">查看示例</a>
                 <a href="https://docs.libcpr.dev" target="_blank" class="library-url">了解更多</a>
             </div>
 

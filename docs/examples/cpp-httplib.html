@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cpp-httplib 库使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>🌐 cpp-httplib 使用指南</h1>
+        <p class="subtitle">轻量级 C++ HTTP/HTTPS 库</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/yhirose/cpp-httplib" target="_blank">https://github.com/yhirose/cpp-httplib</a></p>
+        </div>
+
+        <h2>📖 什么是 cpp-httplib？</h2>
+        <p>cpp-httplib 是一个仅头文件的 C++ HTTP/HTTPS 库，可以快速搭建 HTTP 服务器或发起客户端请求。它简单易用，无需复杂的依赖配置。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>下载头文件</h3>
+        <pre><code># 下载 httplib.h
+wget https://raw.githubusercontent.com/yhirose/cpp-httplib/master/httplib.h
+
+# 或使用 vcpkg
+vcpkg install cpp-httplib</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>创建简单的 HTTP 服务器</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include "httplib.h"
+
+int main() {
+    httplib::Server server;
+
+    // 定义 GET 路由
+    server.Get("/hi", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("Hello World!", "text/plain");
+    });
+
+    // 定义带参数的 GET 路由
+    server.Get(R"(/numbers/(\d+))", [](const httplib::Request& req, httplib::Response& res) {
+        auto numbers = req.matches[1];
+        res.set_content("Number: " + numbers, "text/plain");
+    });
+
+    // 定义 POST 路由
+    server.Post("/post", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content(req.body, "text/plain");
+    });
+
+    // 监听端口
+    server.listen("0.0.0.0", 8080);
+
+    return 0;
+}</code></pre>
+
+        <h3>返回 JSON 响应</h3>
+        <pre><code>#include "httplib.h"
+#include &lt;nlohmann/json.hpp&gt;
+
+using json = nlohmann::json;
+
+int main() {
+    httplib::Server server;
+
+    server.Get("/api/data", [](const httplib::Request& req, httplib::Response& res) {
+        json data = {
+            {"name", "John"},
+            {"age", 25},
+            {"city", "Beijing"}
+        };
+
+        res.set_header("Content-Type", "application/json");
+        res.set_content(data.dump(), "application/json");
+    });
+
+    server.listen("0.0.0.0", 8080);
+    return 0;
+}</code></pre>
+
+        <h3>获取请求参数</h3>
+        <pre><code>server.Get("/search", [](const httplib::Request& req, httplib::Response& res) {
+    // 获取查询参数
+    auto q = req.get_param_value("q");
+    auto page = req.get_param_value("page");
+
+    std::string result = "Search: " + q + ", Page: " + page;
+    res.set_content(result, "text/plain");
+});
+
+// 获取 Header
+server.Get("/info", [](const httplib::Request& req, httplib::Response& res) {
+    auto user_agent = req.get_header_value("User-Agent");
+    res.set_content("User-Agent: " + user_agent, "text/plain");
+});</code></pre>
+
+        <h3>静态文件服务</h3>
+        <pre><code>httplib::Server server;
+
+// 设置静态文件目录
+server.set_mount_point("/public", "./public");
+
+// 设置基础目录
+server.set_base_dir("./www");
+
+// 单文件服务
+server.Get("/download", [](const httplib::Request& req, httplib::Response& res) {
+    auto ret = res.set_file_content("test.pdf", "application/pdf");
+    if (!ret) {
+        res.set_content("File not found", "text/plain");
+        res.status = 404;
+    }
+});</code></pre>
+
+        <h3>HTTPS 服务器</h3>
+        <pre><code>#include "httplib.h"
+
+int main() {
+    httplib::SSLServer svr("./cert.pem", "./key.pem");
+
+    svr.Get("/secure", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content("Secure Connection!", "text/plain");
+    });
+
+    svr.listen("0.0.0.0", 443);
+    return 0;
+}</code></pre>
+
+        <h3>HTTP 客户端</h3>
+        <pre><code>#include "httplib.h"
+#include &lt;iostream&gt;
+
+int main() {
+    httplib::Client client("httpbin.org", 80);
+
+    // GET 请求
+    auto res = client.Get("/get");
+    if (res && res->status == 200) {
+        std::cout &lt;&lt; res->body &lt;&lt; std::endl;
+    }
+
+    // POST 请求
+    httplib::Params params{
+        {"name", "John"},
+        {"age", "25"}
+    };
+    res = client.Post("/post", params);
+
+    // POST JSON
+    res = client.Post("/post", R"({"key":"value"})", "application/json");
+
+    // 带 Headers 的请求
+    httplib::Headers headers = {
+        {"Authorization", "Bearer token"},
+        {"User-Agent", "MyApp"}
+    };
+    res = client.Get("/headers", headers);
+
+    return 0;
+}</code></pre>
+
+        <h3>HTTPS 客户端</h3>
+        <pre><code>httplib::Client client("https://example.com");
+
+// 忽略 SSL 验证（仅用于测试）
+client.enable_server_certificate_verification(false);
+
+auto res = client.Get("/api/data");</code></pre>
+
+        <h3>文件上传</h3>
+        <pre><code>server.Post("/upload", [](const httplib::Request& req, httplib::Response& res) {
+    auto size = req.files.size();
+    std::string result = "Uploaded " + std::to_string(size) + " files\n";
+
+    for (const auto& file : req.files) {
+        result += file.first + ": " + file.second.filename + "\n";
+    }
+
+    res.set_content(result, "text/plain");
+});</code></pre>
+
+        <h3>异常处理</h3>
+        <pre><code>server.set_exception_handler([](const httplib::Request& req, httplib::Response& res, std::exception_ptr eptr) {
+    try {
+        if (eptr) std::rethrow_exception(eptr);
+    } catch (const std::exception& e) {
+        res.set_content(e.what(), "text/plain");
+        res.status = 500;
+    }
+});
+
+// 错误处理器
+server.set_error_handler([](const httplib::Request& req, httplib::Response& res) {
+    auto fmt = "<p>Error Status: <span style='color:red;'>%d</span></p>";
+    char buf[BUFSIZ];
+    snprintf(buf, sizeof(buf), fmt, res.status);
+    res.set_content(buf, "text/html");
+});</code></pre>
+
+        <h2>🎯 常见路由模式</h2>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: rgba(106, 183, 255, 0.2);">
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">方法</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">模式</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">说明</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>server.Get()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">获取</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">GET 请求</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>server.Post()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">创建</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">POST 请求</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>server.Put()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">更新</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">PUT 请求</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>server.Delete()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">删除</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">DELETE 请求</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>server.Patch()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">部分更新</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">PATCH 请求</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px;"><code>R"(/path/(\\d+))"</code></td>
+                <td style="padding: 10px;">正则路径</td>
+                <td style="padding: 10px;">支持正则表达式匹配</td>
+            </tr>
+        </table>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://github.com/yhirose/cpp-httplib" target="_blank">GitHub 仓库</a></li>
+            <li><a href="https://github.com/yhirose/cpp-httplib/blob/master/README.md" target="_blank">官方文档</a></li>
+        </ul>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
+            <p>&copy; 2026 cpp-httplib 使用指南</p>
+        </div>
+    </div>
+</body>
+</html>

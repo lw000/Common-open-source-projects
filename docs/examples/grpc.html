@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gRPC 库使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>🔗 gRPC 使用指南</h1>
+        <p class="subtitle">高性能远程过程调用框架</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/grpc/grpc" target="_blank">https://github.com/grpc/grpc</a></p>
+            <p><strong>官方文档：</strong><a href="https://grpc.io/docs/" target="_blank">https://grpc.io/docs/</a></p>
+        </div>
+
+        <h2>📖 什么是 gRPC？</h2>
+        <p>gRPC 是 Google 开发的高性能开源通用 RPC 框架，基于 HTTP/2 协议和 Protocol Buffers 序列化协议。它支持多种语言，适用于构建分布式系统和微服务架构。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>Linux</h3>
+        <pre><code># 安装依赖
+sudo apt-get install build-essential autoconf libtool pkg-config
+
+# 克隆并编译
+git clone https://github.com/grpc/grpc.git
+cd grpc
+git submodule update --init
+mkdir build && cd build
+cmake .. -DgRPC_INSTALL=ON
+make -j4
+sudo make install</code></pre>
+
+        <h3>macOS (Homebrew)</h3>
+        <pre><code>brew install grpc</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>定义 Proto 文件</h3>
+        <pre><code>// hello.proto
+syntax = "proto3";
+
+package hello;
+
+service Greeter {
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc SayHelloAgain (HelloRequest) returns (HelloReply) {}
+}
+
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloReply {
+  string message = 1;
+}</code></pre>
+
+        <h3>生成 C++ 代码</h3>
+        <pre><code># 编译 Proto 文件
+protoc --grpc_out=. --plugin=protoc-gen-grpc=`which grpc_cpp_plugin` hello.proto
+protoc --cpp_out=. hello.proto
+
+# 或使用 cmake 自动生成</code></pre>
+
+        <h3>服务端实现</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;grpc++/grpc++.h&gt;
+#include "hello.grpc.pb.h"
+
+using grpc::Server;
+using grpc::ServerBuilder;
+using grpc::ServerContext;
+using grpc::Status;
+using hello::Greeter;
+using hello::HelloRequest;
+using hello::HelloReply;
+
+class GreeterServiceImpl final : public Greeter::Service {
+  Status SayHello(ServerContext* context, const HelloRequest* request,
+                  HelloReply* reply) override {
+    std::string prefix("Hello ");
+    reply->set_message(prefix + request->name());
+    return Status::OK;
+  }
+};
+
+int main() {
+  GreeterServiceImpl service;
+
+  ServerBuilder builder;
+  builder.AddListeningPort("0.0.0.0:50051", grpc::InsecureServerCredentials());
+  builder.RegisterService(&service);
+
+  std::unique_ptr&lt;Server&gt; server(builder.BuildAndStart());
+  std::cout &lt;&lt; "Server listening on 0.0.0.0:50051" &lt;&lt; std::endl;
+
+  server->Wait();
+  return 0;
+}</code></pre>
+
+        <h3>客户端实现</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;grpc++/grpc++.h&gt;
+#include "hello.grpc.pb.h"
+
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::Status;
+using hello::Greeter;
+using hello::HelloRequest;
+using hello::HelloReply;
+
+class GreeterClient {
+ public:
+  GreeterClient(std::shared_ptr&lt;Channel&gt; channel)
+      : stub_(Greeter::NewStub(channel)) {}
+
+  std::string SayHello(const std::string& user) {
+    HelloRequest request;
+    request.set_name(user);
+
+    HelloReply reply;
+    ClientContext context;
+
+    Status status = stub_->SayHello(&context, request, &reply);
+
+    if (status.ok()) {
+      return reply.message();
+    } else {
+      return "RPC failed";
+    }
+  }
+
+ private:
+  std::unique_ptr&lt;Greeter::Stub&gt; stub_;
+};
+
+int main() {
+  GreeterClient greeter(grpc::CreateChannel(
+      "localhost:50051", grpc::InsecureChannelCredentials()));
+
+  std::string user = "World";
+  std::string reply = greeter.SayHello(user);
+  std::cout &lt;&lt; "Greeter received: " &lt;&lt; reply &lt;&lt; std::endl;
+
+  return 0;
+}</code></pre>
+
+        <h3>异步服务端</h3>
+        <pre><code>// 使用 CompletionQueue 处理异步调用
+class ServerImpl {
+ public:
+  void Run() {
+    std::string server_address("0.0.0.0:50051");
+
+    ServerBuilder builder;
+    builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+    builder.RegisterService(&service_);
+
+    cq_ = builder.AddCompletionQueue();
+    server_ = builder.BuildAndStart();
+    std::cout &lt;&lt; "Server listening on " &lt;&lt; server_address &lt;&lt; std::endl;
+
+    // 启动处理线程
+    void* tag;
+    bool ok;
+    while (cq_->Next(&tag, &ok)) {
+      // 处理请求
+    }
+  }
+
+ private:
+  Greeter::AsyncService service_;
+  std::unique_ptr&lt;Server&gt; server_;
+  std::unique_ptr&lt;ServerCompletionQueue&gt; cq_;
+};</code></pre>
+
+        <h2>🎯 gRPC 特性</h2>
+        <ul style="margin-left: 20px; color: #d0d0ff;">
+            <li><strong>多语言支持：</strong>支持 C++、Java、Python、Go、Ruby 等</li>
+            <li><strong>高效序列化：</strong>基于 Protocol Buffers，比 JSON 更小更快</li>
+            <li><strong>双向流：</strong>支持客户端流、服务端流和双向流</li>
+            <li><strong>负载均衡：</strong>内置负载均衡和服务发现</li>
+            <li><strong>安全：</strong>支持 SSL/TLS 认证和加密</li>
+        </ul>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://grpc.io/docs/languages/cpp/" target="_blank">gRPC C++ 官方文档</a></li>
+            <li><a href="https://github.com/grpc/grpc" target="_blank">GitHub 仓库</a></li>
+        </ul>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
+            <p>&copy; 2026 gRPC 使用指南</p>
+        </div>
+    </div>
+</body>
+</html>

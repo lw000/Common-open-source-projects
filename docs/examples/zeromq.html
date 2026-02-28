@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroMQ 库使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        p { margin-bottom: 15px; color: #d0d0ff; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        .example-section {
+            background: rgba(255, 159, 127, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 159, 127, 0.3);
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>📡 ZeroMQ 使用指南</h1>
+        <p class="subtitle">高性能异步消息传输库</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/zeromq/libzmq" target="_blank">https://github.com/zeromq/libzmq</a></p>
+            <p><strong>官方文档：</strong><a href="https://zeromq.org/" target="_blank">https://zeromq.org/</a></p>
+        </div>
+
+        <h2>📖 什么是 ZeroMQ？</h2>
+        <p>ZeroMQ（简称 ZMQ）是一个高性能、异步的消息传输库，提供简单的 API 让开发者在应用程序中构建快速、可扩展的网络应用。它不是传统的消息队列（如 RabbitMQ、Kafka），而是一个轻量级的消息传输层。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>Linux (Ubuntu/Debian)</h3>
+        <pre><code>sudo apt-get install libzmq3-dev</code></pre>
+
+        <h3>macOS (Homebrew)</h3>
+        <pre><code>brew install zeromq</code></pre>
+
+        <h3>Windows (vcpkg)</h3>
+        <pre><code>vcpkg install zeromq</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>请求-响应模式 (REQ-REP)</h3>
+        <div class="example-section">
+            <h4>服务端代码</h4>
+            <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_REP);
+    socket.bind("tcp://*:5555");
+
+    while (true) {
+        zmq::message_t request;
+        socket.recv(&request);
+        std::cout &lt;&lt; "收到: " &lt;&lt; std::string(static_cast&lt;char*&gt;(request.data()), request.size()) &lt;&lt; std::endl;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+        zmq::message_t reply(5);
+        memcpy(reply.data(), "World", 5);
+        socket.send(reply);
+    }
+    return 0;
+}</code></pre>
+
+            <h4>客户端代码</h4>
+            <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_REQ);
+    socket.connect("tcp://localhost:5555");
+
+    for (int i = 0; i &lt; 5; i++) {
+        zmq::message_t request(5);
+        memcpy(request.data(), "Hello", 5);
+        socket.send(request);
+
+        zmq::message_t reply;
+        socket.recv(&reply);
+        std::cout &lt;&lt; "收到: " &lt;&lt; std::string(static_cast&lt;char*&gt;(reply.data()), reply.size()) &lt;&lt; std::endl;
+    }
+    return 0;
+}</code></pre>
+        </div>
+
+        <h3>发布-订阅模式 (PUB-SUB)</h3>
+        <div class="example-section">
+            <h4>发布者代码</h4>
+            <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_PUB);
+    socket.bind("tcp://*:5556");
+
+    int counter = 0;
+    while (true) {
+        std::string message = "Update " + std::to_string(counter++);
+        zmq::message_t msg(message.size());
+        memcpy(msg.data(), message.c_str(), message.size());
+        socket.send(msg);
+
+        std::cout &lt;&lt; "已发送: " &lt;&lt; message &lt;&lt; std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+    return 0;
+}</code></pre>
+
+            <h4>订阅者代码</h4>
+            <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_SUB);
+    socket.connect("tcp://localhost:5556");
+    
+    // 订阅所有消息
+    socket.setsockopt(ZMQ_SUBSCRIBE, "", 0);
+
+    while (true) {
+        zmq::message_t msg;
+        socket.recv(&msg);
+        std::cout &lt;&lt; "收到: " &lt;&lt; std::string(static_cast&lt;char*&gt;(msg.data()), msg.size()) &lt;&lt; std::endl;
+    }
+    return 0;
+}</code></pre>
+        </div>
+
+        <h3>推送-拉取模式 (PUSH-PULL)</h3>
+        <div class="example-section">
+            <h4>Worker (Pull 端)</h4>
+            <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_PULL);
+    socket.connect("tcp://localhost:5557");
+
+    while (true) {
+        zmq::message_t msg;
+        socket.recv(&msg);
+        std::cout &lt;&lt; "处理任务: " &lt;&lt; std::string(static_cast&lt;char*&gt;(msg.data()), msg.size()) &lt;&lt; std::endl;
+    }
+    return 0;
+}</code></pre>
+
+            <h4>任务分发器 (Push 端)</h4>
+            <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_PUSH);
+    socket.bind("tcp://*:5557");
+
+    for (int i = 0; i &lt; 10; i++) {
+        std::string task = "Task " + std::to_string(i);
+        zmq::message_t msg(task.size());
+        memcpy(msg.data(), task.c_str(), task.size());
+        socket.send(msg);
+        std::cout &lt;&lt; "发送: " &lt;&lt; task &lt;&lt; std::endl;
+    }
+    return 0;
+}</code></pre>
+        </div>
+
+        <h2>🎯 常见模式速查</h2>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: rgba(106, 183, 255, 0.2);">
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">模式</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">描述</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">用途</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">REQ-REP</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">请求-响应</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">远程调用服务</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">PUB-SUB</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">发布-订阅</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">消息广播</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">PUSH-PULL</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">推送-拉取</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">任务分发</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">DEALER-ROUTER</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">高级请求-响应</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">异步服务</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px;">PAIR</td>
+                <td style="padding: 10px;">一对一</td>
+                <td style="padding: 10px;">进程间通信</td>
+            </tr>
+        </table>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://zguide.zeromq.org/" target="_blank">ZeroMQ 指南</a></li>
+            <li><a href="https://github.com/zeromq/libzmq" target="_blank">ZeroMQ GitHub</a></li>
+            <li><a href="https://zeromq.org/get-started/" target="_blank">快速入门</a></li>
+        </ul>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
+            <p>&copy; 2026 ZeroMQ 使用指南</p>
+        </div>
+    </div>
+</body>
+</html>

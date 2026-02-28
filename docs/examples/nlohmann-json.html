@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nlohmann/json 库使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        .example-section {
+            background: rgba(255, 159, 127, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 159, 127, 0.3);
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>📦 nlohmann/json 使用指南</h1>
+        <p class="subtitle">现代化的 C++ JSON 库</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/nlohmann/json" target="_blank">https://github.com/nlohmann/json</a></p>
+            <p><strong>官方文档：</strong><a href="https://json.nlohmann.me/" target="_blank">https://json.nlohmann.me/</a></p>
+        </div>
+
+        <h2>📖 什么是 nlohmann/json？</h2>
+        <p>nlohmann/json 是一个非常流行的 C++ JSON 库，以直观的语法和高性能著称。它是一个仅头文件的库，让在 C++ 中处理 JSON 数据变得极其简单。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>使用 vcpkg（推荐）</h3>
+        <pre><code>vcpkg install nlohmann-json</code></pre>
+
+        <h3>使用 Conan</h3>
+        <pre><code>conan install nlohmann_json/3.11.2@</code></pre>
+
+        <h3>单头文件引入</h3>
+        <pre><code>// 下载 json.hpp 文件并直接包含
+#include "json.hpp"</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>创建和解析 JSON 对象</h3>
+        <div class="example-section">
+            <pre><code>#include &lt;iostream&gt;
+#include &lt;nlohmann/json.hpp&gt;
+
+using json = nlohmann::json;
+
+int main() {
+    // 创建 JSON 对象
+    json j;
+    j["name"] = "John";
+    j["age"] = 25;
+    j["city"] = "Beijing";
+    
+    std::cout &lt;&lt; j.dump(4) &lt;&lt; std::endl;
+    return 0;
+}</code></pre>
+        </div>
+
+        <h3>从字符串解析 JSON</h3>
+        <div class="example-section">
+            <pre><code>// 从字符串解析
+std::string json_str = R"({
+    "name": "John",
+    "age": 25,
+    "skills": ["C++", "Python", "JavaScript"]
+})";
+
+auto j = json::parse(json_str);
+
+// 访问数据
+std::string name = j["name"];
+int age = j["age"];
+std::vector&lt;std::string&gt; skills = j["skills"];</code></pre>
+        </div>
+
+        <h3>数组操作</h3>
+        <div class="example-section">
+            <pre><code>// 创建数组
+json j_arr = json::array();
+j_arr.push_back("item1");
+j_arr.push_back("item2");
+j_arr.push_back("item3");
+
+// 或使用初始化列表
+json j_arr2 = {"item1", "item2", "item3"};
+
+// 遍历数组
+for (const auto& item : j_arr) {
+    std::cout &lt;&lt; item &lt;&lt; std::endl;
+}
+
+// 访问元素
+std::string first = j_arr[0];
+size_t size = j_arr.size();</code></pre>
+        </div>
+
+        <h3>嵌套对象</h3>
+        <div class="example-section">
+            <pre><code>json person;
+person["name"] = "John";
+person["age"] = 25;
+
+// 创建嵌套对象
+person["address"] = {
+    {"street", "Main St"},
+    {"city", "Beijing"},
+    {"zip", "100000"}
+};
+
+// 创建嵌套数组
+person["phones"] = {"123-456-7890", "987-654-3210"};
+
+// 访问嵌套数据
+std::string city = person["address"]["city"];
+std::string phone = person["phones"][0];
+
+// 输出格式化的 JSON
+std::cout &lt;&lt; person.dump(4) &lt;&lt; std::endl;</code></pre>
+        </div>
+
+        <h3>类型转换</h3>
+        <div class="example-section">
+            <pre><code>json j;
+
+// 自动类型推导
+j["integer"] = 42;
+j["floating"] = 3.14;
+j["boolean"] = true;
+j["string"] = "hello";
+j["null"] = nullptr;
+
+// 显式转换
+int value = j["integer"].get&lt;int&gt;();
+double pi = j["floating"].get&lt;double&gt;();
+bool flag = j["boolean"].get&lt;bool&gt;();
+std::string text = j["string"].get&lt;std::string&gt;();
+
+// 检查类型
+if (j["integer"].is_number_integer()) {
+    std::cout &lt;&lt; "Is integer" &lt;&lt; std::endl;
+}</code></pre>
+        </div>
+
+        <h3>序列化和反序列化</h3>
+        <div class="example-section">
+            <pre><code>#include &lt;fstream&gt;
+
+// 反序列化 - 从文件
+json j;
+std::ifstream("config.json") &gt;&gt; j;
+
+// 序列化 - 保存到文件
+std::ofstream("output.json") &lt;&lt; std::setw(4) &lt;&lt; j;
+
+// 从字符串解析
+std::string json_str = R"({"key": "value"})";
+auto j = json::parse(json_str);
+
+// 转换为字符串
+std::string output = j.dump();           // 紧凑格式
+std::string pretty = j.dump(4);          // 缩进4个空格</code></pre>
+        </div>
+
+        <h3>与 C++ 容器互操作</h3>
+        <div class="example-section">
+            <pre><code>#include &lt;vector&gt;
+#include &lt;map&gt;
+
+// std::vector 转 JSON
+std::vector&lt;int&gt; vec = {1, 2, 3, 4, 5};
+json j_vec = vec;
+
+// JSON 转 std::vector
+auto vec2 = j_vec.get&lt;std::vector&lt;int&gt;&gt;();
+
+// std::map 转 JSON
+std::map&lt;std::string, int&gt; m = {{"a", 1}, {"b", 2}};
+json j_map = m;
+
+// 自定义结构体
+struct Person {
+    std::string name;
+    int age;
+};
+
+// 定义 to_json 和 from_json
+void to_json(json& j, const Person& p) {
+    j = json{{"name", p.name}, {"age", p.age}};
+}
+
+void from_json(const json& j, Person& p) {
+    j.at("name").get_to(p.name);
+    j.at("age").get_to(p.age);
+}
+
+// 使用
+Person p{"John", 25};
+json j_person = p;
+Person p2 = j_person.get&lt;Person&gt;();</code></pre>
+        </div>
+
+        <h3>修改和查询</h3>
+        <div class="example-section">
+            <pre><code>json j = {
+    {"name", "John"},
+    {"age", 25},
+    {"skills", ["C++", "Python"]}
+};
+
+// 修改值
+j["age"] = 26;
+
+// 添加新字段
+j["country"] = "China";
+
+// 删除字段
+j.erase("age");
+
+// 检查键是否存在
+if (j.contains("name")) {
+    std::cout &lt;&lt; "Name: " &lt;&lt; j["name"] &lt;&lt; std::endl;
+}
+
+// 获取所有键
+auto keys = j.items();
+for (auto& [key, value] : keys) {
+    std::cout &lt;&lt; key &lt;&lt; ": " &lt;&lt; value &lt;&lt; std::endl;
+}</code></pre>
+        </div>
+
+        <h2>🎯 常用方法速查</h2>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: rgba(106, 183, 255, 0.2);">
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">操作</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">方法</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">说明</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">解析</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>json::parse()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">从字符串解析</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">序列化</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>dump()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">转换为字符串</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">类型检查</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>is_string()</code>, <code>is_number()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">检查类型</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">获取值</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>get&lt;T&gt;()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">获取指定类型</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px;">访问</td>
+                <td style="padding: 10px;"><code>j["key"]</code>, <code>j.at("key")</code></td>
+                <td style="padding: 10px;">访问字段</td>
+            </tr>
+        </table>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://json.nlohmann.me/" target="_blank">官方文档</a></li>
+            <li><a href="https://github.com/nlohmann/json" target="_blank">GitHub 仓库</a></li>
+        </ul>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
+            <p>&copy; 2026 nlohmann/json 使用指南</p>
+        </div>
+    </div>
+</body>
+</html>

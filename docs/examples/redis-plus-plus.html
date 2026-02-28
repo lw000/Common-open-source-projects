@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>redis-plus-plus 库使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        .example-section {
+            background: rgba(255, 159, 127, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            border: 1px solid rgba(255, 159, 127, 0.3);
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>🔴 redis-plus-plus 使用指南</h1>
+        <p class="subtitle">现代化的 C++ Redis 客户端库</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/sewenew/redis-plus-plus" target="_blank">https://github.com/sewenew/redis-plus-plus</a></p>
+            <p><strong>官方文档：</strong><a href="https://sewenew.github.io/redis-plus-plus/" target="_blank">https://sewenew.github.io/redis-plus-plus/</a></p>
+        </div>
+
+        <h2>📖 什么是 redis-plus-plus？</h2>
+        <p>redis-plus-plus 是一个现代 C++ 客户端库，用于连接和操作 Redis 数据库。它提供了类型安全、异步和同步的 API，简化了 Redis 操作。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>使用 vcpkg（推荐）</h3>
+        <pre><code>vcpkg install redis-plus-plus</code></pre>
+
+        <h3>使用 CMake</h3>
+        <pre><code>git clone https://github.com/sewenew/redis-plus-plus.git
+cd redis-plus-plus
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j4
+sudo make install</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>连接 Redis</h3>
+        <div class="example-section">
+            <pre><code>#include &lt;sw/redis++/redis++.h&gt;
+#include &lt;iostream&gt;
+
+using namespace sw::redis;
+
+int main() {
+    // 创建 Redis 客户端
+    auto redis = Redis("tcp://127.0.0.1:6379");
+    
+    // 测试连接
+    auto val = redis.ping();
+    std::cout &lt;&lt; "Ping: " &lt;&lt; val &lt;&lt; std::endl;
+    
+    return 0;
+}</code></pre>
+        </div>
+
+        <h3>String 操作</h3>
+        <div class="example-section">
+            <pre><code>#include &lt;sw/redis++/redis++.h&gt;
+#include &lt;iostream&gt;
+
+using namespace sw::redis;
+
+int main() {
+    auto redis = Redis("tcp://127.0.0.1:6379");
+    
+    // 设置键值
+    redis.set("key", "value");
+    
+    // 获取键值
+    auto val = redis.get("key");
+    if (val) {
+        std::cout &lt;&lt; "key = " &lt;&lt; *val &lt;&lt; std::endl;
+    }
+    
+    // 设置过期时间（10秒）
+    redis.setex("expiring_key", 10, "will_expire");
+    
+    // 删除键
+    redis.del("key");
+    
+    return 0;
+}</code></pre>
+        </div>
+
+        <h3>Hash 操作</h3>
+        <div class="example-section">
+            <pre><code>auto redis = Redis("tcp://127.0.0.1:6379");
+
+// 设置 Hash 字段
+redis.hset("user:1", "name", "John");
+redis.hset("user:1", "age", "25");
+redis.hset("user:1", "city", "Beijing");
+
+// 获取 Hash 字段
+auto name = redis.hget("user:1", "name");
+if (name) {
+    std::cout &lt;&lt; "Name: " &lt;&lt; *name &lt;&lt; std::endl;
+}
+
+// 获取所有字段
+auto fields = redis.hgetall("user:1");
+for (const auto& field : fields) {
+    std::cout &lt;&lt; field.first &lt;&lt; ": " &lt;&lt; field.second &lt;&lt; std::endl;
+}</code></pre>
+        </div>
+
+        <h3>List 操作</h3>
+        <div class="example-section">
+            <pre><code>auto redis = Redis("tcp://127.0.0.1:6379");
+
+// 从左侧推入
+redis.lpush("mylist", "item1");
+redis.lpush("mylist", "item2");
+redis.lpush("mylist", "item3");
+
+// 获取列表长度
+auto len = redis.llen("mylist");
+std::cout &lt;&lt; "List length: " &lt;&lt; len &lt;&lt; std::endl;
+
+// 获取范围（0 到 -1 表示全部）
+auto items = redis.lrange("mylist", 0, -1);
+for (const auto& item : items) {
+    std::cout &lt;&lt; item &lt;&lt; std::endl;
+}
+
+// 从右侧弹出
+auto item = redis.rpop("mylist");</code></pre>
+        </div>
+
+        <h3>Set 操作</h3>
+        <div class="example-section">
+            <pre><code>auto redis = Redis("tcp://127.0.0.1:6379");
+
+// 添加元素
+redis.sadd("myset", "a");
+redis.sadd("myset", "b");
+redis.sadd("myset", "c");
+
+// 获取所有成员
+auto members = redis.smembers("myset");
+for (const auto& member : members) {
+    std::cout &lt;&lt; member &lt;&lt; std::endl;
+}
+
+// 检查成员是否存在
+if (redis.sismember("myset", "a")) {
+    std::cout &lt;&lt; "'a' exists in set" &lt;&lt; std::endl;
+}
+
+// 获取集合大小
+auto size = redis.scard("myset");</code></pre>
+        </div>
+
+        <h3>Sorted Set 操作</h3>
+        <div class="example-section">
+            <pre><code>auto redis = Redis("tcp://127.0.0.1:6379");
+
+// 添加带分数的元素
+redis.zadd("leaderboard", "player1", 100);
+redis.zadd("leaderboard", "player2", 200);
+redis.zadd("leaderboard", "player3", 150);
+
+// 获取排名范围（从高到低）
+auto leaders = redis.zrevrange("leaderboard", 0, 2);
+for (const auto& leader : leaders) {
+    std::cout &lt;&lt; leader &lt;&lt; std::endl;
+}
+
+// 获取带分数的范围
+auto withScores = redis.zrevrange_withscores("leaderboard", 0, 2);
+for (const auto& elem : withScores) {
+    std::cout &lt;&lt; elem.first &lt;&lt; ": " &lt;&lt; elem.second &lt;&lt; std::endl;
+}
+
+// 获取成员排名
+auto rank = redis.zrevrank("leaderboard", "player2");</code></pre>
+        </div>
+
+        <h3>事务操作</h3>
+        <div class="example-section">
+            <pre><code>auto redis = Redis("tcp://127.0.0.1:6379");
+
+// 使用事务
+auto tx = redis.transaction();
+tx.set("key1", "value1");
+tx.set("key2", "value2");
+tx.get("key1");
+// 执行事务
+tx.exec();
+
+// Pipeline（管道，无需原子性）
+auto pipe = redis.pipeline();
+pipe.set("key3", "value3");
+pipe.set("key4", "value4");
+pipe.get("key3");
+// 执行管道
+auto replies = pipe.exec();</code></pre>
+        </div>
+
+        <h2>🎯 常见数据类型操作速查</h2>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: rgba(106, 183, 255, 0.2);">
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">类型</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">操作</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">方法</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">String</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">设置/获取</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>set(), get()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">Hash</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">字段操作</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>hset(), hget(), hgetall()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">List</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">列表操作</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>lpush(), rpop(), lrange()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">Set</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">集合操作</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>sadd(), smembers(), sismember()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px;">Sorted Set</td>
+                <td style="padding: 10px;">有序集合</td>
+                <td style="padding: 10px;"><code>zadd(), zrange(), zrevrange()</code></td>
+            </tr>
+        </table>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://sewenew.github.io/redis-plus-plus/" target="_blank">redis-plus-plus 官方文档</a></li>
+            <li><a href="https://github.com/sewenew/redis-plus-plus" target="_blank">GitHub 仓库</a></li>
+        </ul>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
+            <p>&copy; 2026 redis-plus-plus 使用指南</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLiteCpp 使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>🗄️ SQLiteCpp 使用指南</h1>
+        <p class="subtitle">优雅的 C++ SQLite 数据库封装</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/SRombauts/SQLiteCpp" target="_blank">https://github.com/SRombauts/SQLiteCpp</a></p>
+        </div>
+
+        <h2>📖 什么是 SQLiteCpp？</h2>
+        <p>SQLiteCpp 是一个对 SQLite 的 C++ 封装库，提供 RAII 和异常安全的接口，简化了 SQLite 数据库的操作。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>使用 vcpkg（推荐）</h3>
+        <pre><code>vcpkg install sqlitecpp</code></pre>
+
+        <h3>使用 CMake</h3>
+        <pre><code>git clone https://github.com/SRombauts/SQLiteCpp.git
+cd SQLiteCpp
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+make -j4
+sudo make install</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>连接和创建数据库</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;SQLiteCpp/SQLiteCpp.h&gt;
+
+int main() {
+    try {
+        // 打开或创建数据库
+        SQLite::Database db("example.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+
+        std::cout &lt;&lt; "数据库文件: " &lt;&lt; db.getFilename() &lt;&lt; std::endl;
+        std::cout &lt;&lt; "是否打开: " &lt;&lt; db.isOpen() &lt;&lt; std::endl;
+
+    } catch (std::exception& e) {
+        std::cerr &lt;&lt; "错误: " &lt;&lt; e.what() &lt;&lt; std::endl;
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>创建表</h3>
+        <pre><code>SQLite::Database db("example.db", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+
+// 创建表
+db.exec("CREATE TABLE IF NOT EXISTS users ("
+       "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+       "name TEXT NOT NULL, "
+       "age INTEGER, "
+       "email TEXT)");
+
+// 检查表是否存在
+bool exists = db.tableExists("users");
+std::cout &lt;&lt; "表 exists: " &lt;&lt; exists &lt;&lt; std::endl;</code></pre>
+
+        <h3>插入数据</h3>
+        <pre><code>// 直接执行 SQL
+db.exec("INSERT INTO users (name, age, email) VALUES ('John', 25, 'john@example.com')");
+
+// 使用预编译语句（推荐）
+SQLite::Statement query(db, "INSERT INTO users (name, age, email) VALUES (?, ?, ?)");
+
+query.bind(1, "Alice");
+query.bind(2, 30);
+query.bind(3, "alice@example.com");
+query.exec();
+
+query.bind(1, "Bob");
+query.bind(2, 28);
+query.bind(3, "bob@example.com");
+query.exec();
+
+// 使用事务
+SQLite::Transaction transaction(db);
+try {
+    db.exec("INSERT INTO users (name, age) VALUES ('Charlie', 35)");
+    db.exec("INSERT INTO users (name, age) VALUES ('David', 40)");
+    transaction.commit();
+} catch (...) {
+    transaction.rollback();
+}</code></pre>
+
+        <h3>查询数据</h3>
+        <pre><code>// 查询单条记录
+SQLite::Statement query(db, "SELECT * FROM users WHERE id = ?");
+query.bind(1, 1);
+
+if (query.executeStep()) {
+    int id = query.getColumn(0);
+    std::string name = query.getColumn(1);
+    int age = query.getColumn(2);
+
+    std::cout &lt;&lt; "ID: " &lt;&lt; id &lt;&lt; ", Name: " &lt;&lt; name &lt;&lt; ", Age: " &lt;&lt; age &lt;&lt; std::endl;
+}
+
+// 查询所有记录
+SQLite::Statement queryAll(db, "SELECT * FROM users");
+
+while (queryAll.executeStep()) {
+    int id = queryAll.getColumn("id");
+    std::string name = queryAll.getColumn("name");
+    int age = queryAll.getColumn("age");
+    std::string email = queryAll.getColumn("email");
+
+    std::cout &lt;&lt; id &lt;&lt; ": " &lt;&lt; name &lt;&lt; ", " &lt;&lt; age &lt;&lt; " 岁, " &lt;&lt; email &lt;&lt; std::endl;
+}</code></pre>
+
+        <h3>更新和删除</h3>
+        <pre><code>// 更新数据
+SQLite::Statement update(db, "UPDATE users SET age = ? WHERE id = ?");
+update.bind(1, 26);
+update.bind(2, 1);
+update.exec();
+
+int updated = db.execAndGet("SELECT changes()");
+std::cout &lt;&lt; "更新了 " &lt;&lt; updated &lt;&lt; " 行" &lt;&lt; std::endl;
+
+// 删除数据
+SQLite::Statement del(db, "DELETE FROM users WHERE id = ?");
+del.bind(1, 2);
+del.exec();
+
+int deleted = db.execAndGet("SELECT changes()");
+std::cout &lt;&lt; "删除了 " &lt;&lt; deleted &lt;&lt; " 行" &lt;&lt; std::endl;</code></pre>
+
+        <h3>使用返回值</h3>
+        <pre><code>// 获取单个值
+int count = db.execAndGet("SELECT COUNT(*) FROM users");
+std::cout &lt;&lt; "用户总数: " &lt;&lt; count &lt;&lt; std::endl;
+
+// 获取平均年龄
+double avgAge = db.execAndGet("SELECT AVG(age) FROM users");
+std::cout &lt;&lt; "平均年龄: " &lt;&lt; avgAge &lt;&lt; std::endl;</code></pre>
+
+        <h3>批量插入</h3>
+        <pre><code>SQLite::Statement insert(db, "INSERT INTO users (name, age) VALUES (?, ?)");
+
+// 批量插入（在事务中）
+SQLite::Transaction transaction(db);
+
+for (int i = 0; i &lt; 100; i++) {
+    insert.bind(1, "User" + std::to_string(i));
+    insert.bind(2, 20 + (i % 50));
+    insert.exec();
+    insert.reset();
+}
+
+transaction.commit();
+
+std::cout &lt;&lt; "插入了 100 条记录" &lt;&lt; std::endl;</code></pre>
+
+        <h3>内存数据库</h3>
+        <pre><code>// 使用内存数据库
+SQLite::Database db(":memory:", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE);
+
+db.exec("CREATE TABLE test (id INTEGER, name TEXT)");
+
+// 快速操作，无磁盘 I/O</code></pre>
+
+        <h3>错误处理</h3>
+        <pre><code>try {
+    SQLite::Database db("example.db", SQLite::OPEN_READWRITE);
+
+    // 执行可能失败的 SQL
+    SQLite::Statement query(db, "SELECT * FROM nonexistent_table");
+
+    if (!query.executeStep()) {
+        std::cout &lt;&lt; "查询失败" &lt;&lt; std::endl;
+    }
+
+} catch (SQLite::Exception& e) {
+    std::cerr &lt;&lt; "SQLite 错误: " &lt;&lt; e.what() &lt;&lt; std::endl;
+    std::cerr &lt;&lt; "错误代码: " &lt;&lt; e.getErrorCode() &lt;&lt; std::endl;
+    std::cerr &lt;&lt; "扩展错误: " &lt;&lt; e.getExtendedErrorCode() &lt;&lt; std::endl;
+}</code></pre>
+
+        <h2>🎯 常见操作速查</h2>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: rgba(106, 183, 255, 0.2);">
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">操作</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">方法</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">说明</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">执行 SQL</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>db.exec()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">执行无返回的 SQL</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">获取值</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>db.execAndGet()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">执行并获取单个值</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">预编译</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>SQLite::Statement</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">预编译 SQL 语句</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">绑定参数</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>query.bind()</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">绑定参数</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">事务</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>SQLite::Transaction</code></td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">事务管理</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px;">检查表</td>
+                <td style="padding: 10px;"><code>db.tableExists()</code></td>
+                <td style="padding: 10px;">检查表是否存在</td>
+            </tr>
+        </table>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://github.com/SRombauts/SQLiteCpp" target="_blank">GitHub 仓库</a></li>
+            <li><a href="https://github.com/SRombauts/SQLiteCpp/tree/master/examples" target="_blank">示例代码</a></li>
+        </ul>
+
+        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
+            <p>&copy; 2026 SQLiteCpp 使用指南</p>
+        </div>
+    </div>
+</body>
+</html>
