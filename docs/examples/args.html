@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>args 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(30, 30, 50, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 100, 150, 0.3);
+        }
+
+        th {
+            background-color: rgba(76, 209, 168, 0.2);
+            color: #4cd1a8;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: rgba(100, 100, 150, 0.2);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>args 使用指南</h1>
+
+        <p>args 是一个功能强大且易于使用的 C++ 命令行参数解析库，帮助开发者轻松处理 CLI 输入。它支持位置参数、标志选项、可选参数等多种形式。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>从 GitHub 获取</h3>
+        <pre><code>git clone https://github.com/Taywee/args.git</code></pre>
+
+        <h3>头文件方式使用</h3>
+        <pre><code>#include &lt;args.hxx&gt;</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>简单的 Hello World</h3>
+        <pre><code>#include &lt;args.hxx&gt;
+#include &lt;iostream&gt;
+
+int main(int argc, char** argv) {
+    args::ArgumentParser parser("This is a test program.", "This goes after the options.");
+    args::HelpFlag help(parser, "HELP", "Display this help menu", {'h', "help"});
+    
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (args::Help) {
+        std::cout &lt;&lt; parser;
+        return 0;
+    }
+    catch (args::ParseError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+
+    std::cout &lt;&lt; "Hello, World!" &lt;&lt; std::endl;
+    return 0;
+}</code></pre>
+
+        <h3>位置参数</h3>
+        <pre><code>#include &lt;args.hxx&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main(int argc, char** argv) {
+    args::ArgumentParser parser("My program");
+    args::HelpFlag help(parser, "HELP", "Display this help menu", {'h', "help"});
+    
+    // 位置参数
+    args::ValueFlag&lt;std::string&gt; input(
+        parser, "INPUT", "Input file", {"input"}
+    );
+    
+    args::ValueFlag&lt;std::string&gt; output(
+        parser, "OUTPUT", "Output file", {"output"}
+    );
+
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (args::Help) {
+        std::cout &lt;&lt; parser;
+        return 0;
+    }
+    catch (args::ParseError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+
+    if (input) {
+        std::cout &lt;&lt; "Input file: " &lt;&lt; args::get(input) &lt;&lt; std::endl;
+    }
+    
+    if (output) {
+        std::cout &lt;&lt; "Output file: " &lt;&lt; args::get(output) &lt;&lt; std::endl;
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>布尔标志</h3>
+        <pre><code>#include &lt;args.hxx&gt;
+#include &lt;iostream&gt;
+
+int main(int argc, char** argv) {
+    args::ArgumentParser parser("My program");
+    args::HelpFlag help(parser, "HELP", "Display this help menu", {'h', "help"});
+    
+    // 布尔标志
+    args::Flag verbose(
+        parser, "VERBOSE", "Enable verbose output", {'v', "verbose"}
+    );
+    
+    args::Flag debug(
+        parser, "DEBUG", "Enable debug mode", {'d', "debug"}
+    );
+    
+    args::Flag force(
+        parser, "FORCE", "Force overwrite", {'f', "force"}
+    );
+
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (args::Help) {
+        std::cout &lt;&lt; parser;
+        return 0;
+    }
+    catch (args::ParseError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+
+    std::cout &lt;&lt; "Verbose: " &lt;&lt; (verbose ? "true" : "false") &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Debug: " &lt;&lt; (debug ? "true" : "false") &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Force: " &lt;&lt; (force ? "true" : "false") &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>带值的参数</h3>
+        <pre><code>#include &lt;args.hxx&gt;
+#include &lt;iostream&gt;
+
+int main(int argc, char** argv) {
+    args::ArgumentParser parser("My program");
+    args::HelpFlag help(parser, "HELP", "Display this help menu", {'h', "help"});
+    
+    // 整数参数
+    args::ValueFlag&lt;int&gt; port(
+        parser, "PORT", "Port number", {'p', "port"}
+    );
+    
+    // 浮点数参数
+    args::ValueFlag&lt;double&gt; rate(
+        parser, "RATE", "Processing rate", {'r', "rate"}
+    );
+    
+    // 字符串参数
+    args::ValueFlag&lt;std::string&gt; host(
+        parser, "HOST", "Host address", {'H', "host"}
+    );
+
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (args::Help) {
+        std::cout &lt;&lt; parser;
+        return 0;
+    }
+    catch (args::ParseError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+
+    if (port) {
+        std::cout &lt;&lt; "Port: " &lt;&lt; args::get(port) &lt;&lt; std::endl;
+    }
+    
+    if (rate) {
+        std::cout &lt;&lt; "Rate: " &lt;&lt; args::get(rate) &lt;&lt; std::endl;
+    }
+    
+    if (host) {
+        std::cout &lt;&lt; "Host: " &lt;&lt; args::get(host) &lt;&lt; std::endl;
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>多值参数</h3>
+        <pre><code>#include &lt;args.hxx&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+
+int main(int argc, char** argv) {
+    args::ArgumentParser parser("My program");
+    args::HelpFlag help(parser, "HELP", "Display this help menu", {'h', "help"});
+    
+    // 多值参数
+    args::PositionalList&lt;std::string&gt; files(
+        parser, "FILES", "Input files"
+    );
+    
+    // 多值标志参数
+    args::ValueFlagList&lt;std::string&gt; include(
+        parser, "INCLUDE", "Include paths", {'I', "include"}
+    );
+    
+    args::ValueFlagList&lt;std::string&gt; define(
+        parser, "DEFINE", "Macro definitions", {'D', "define"}
+    );
+
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (args::Help) {
+        std::cout &lt;&lt; parser;
+        return 0;
+    }
+    catch (args::ParseError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+
+    if (files) {
+        std::cout &lt;&lt; "Files:" &lt;&lt; std::endl;
+        for (const auto&amp; file : args::get(files)) {
+            std::cout &lt;&lt; "  " &lt;&lt; file &lt;&lt; std::endl;
+        }
+    }
+    
+    if (include) {
+        std::cout &lt;&lt; "Include paths:" &lt;&lt; std::endl;
+        for (const auto&amp; path : args::get(include)) {
+            std::cout &lt;&lt; "  " &lt;&lt; path &lt;&lt; std::endl;
+        }
+    }
+    
+    if (define) {
+        std::cout &lt;&lt; "Definitions:" &lt;&lt; std::endl;
+        for (const auto&amp; def : args::get(define)) {
+            std::cout &lt;&lt; "  " &lt;&lt; def &lt;&lt; std::endl;
+        }
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>完整的命令行工具</h3>
+        <pre><code>#include &lt;args.hxx&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;vector&gt;
+#include &lt;fstream&gt;
+
+int main(int argc, char** argv) {
+    args::ArgumentParser parser(
+        "File Processor - A simple tool for processing files",
+        "Example: ./processor -i input.txt -o output.txt -v"
+    );
+    
+    args::HelpFlag help(parser, "HELP", "Display this help menu", {'h', "help"});
+    
+    args::Group required(parser, "Required arguments:", args::Group::Validators::All);
+    
+    args::ValueFlag&lt;std::string&gt; input(
+        required, "INPUT", "Input file path", {'i', "input"}
+    );
+    
+    args::ValueFlag&lt;std::string&gt; output(
+        required, "OUTPUT", "Output file path", {'o', "output"}
+    );
+    
+    args::Group optional(parser, "Optional arguments:");
+    
+    args::Flag verbose(
+        optional, "VERBOSE", "Enable verbose output", {'v', "verbose"}
+    );
+    
+    args::Flag force(
+        optional, "FORCE", "Force overwrite output file", {'f', "force"}
+    );
+    
+    args::ValueFlag&lt;int&gt; threads(
+        optional, "THREADS", "Number of threads (default: 1)", {'t', "threads"}
+    );
+    
+    args::ValueFlagList&lt;std::string&gt; filters(
+        optional, "FILTER", "Filter patterns", {'F', "filter"}
+    );
+
+    try {
+        parser.ParseCLI(argc, argv);
+    }
+    catch (args::Help) {
+        std::cout &lt;&lt; parser;
+        return 0;
+    }
+    catch (args::ParseError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+    catch (args::ValidationError e) {
+        std::cerr &lt;&lt; e.what() &lt;&lt; std::endl;
+        std::cerr &lt;&lt; parser;
+        return 1;
+    }
+
+    // 获取参数值
+    std::string inputFile = args::get(input);
+    std::string outputFile = args::get(output);
+    bool verboseMode = verbose;
+    bool forceMode = force;
+    int threadCount = threads ? args::get(threads) : 1;
+    auto filterList = filters ? args::get(filters) : std::vector&lt;std::string&gt;();
+
+    // 显示配置
+    std::cout &lt;&lt; "=== Configuration ===" &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Input: " &lt;&lt; inputFile &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Output: " &lt;&lt; outputFile &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Verbose: " &lt;&lt; (verboseMode ? "Yes" : "No") &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Force: " &lt;&lt; (forceMode ? "Yes" : "No") &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Threads: " &lt;&lt; threadCount &lt;&lt; std::endl;
+    
+    if (!filterList.empty()) {
+        std::cout &lt;&lt; "Filters:" &lt;&lt; std::endl;
+        for (const auto&amp; filter : filterList) {
+            std::cout &lt;&lt; "  - " &lt;&lt; filter &lt;&lt; std::endl;
+        }
+    }
+
+    // 执行处理逻辑（示例）
+    std::ifstream inFile(inputFile);
+    std::ofstream outFile(outputFile);
+    
+    if (inFile.good() && outFile.good()) {
+        std::cout &lt;&lt; "\nProcessing file..." &lt;&lt; std::endl;
+        std::string line;
+        while (std::getline(inFile, line)) {
+            if (verboseMode) {
+                std::cout &lt;&lt; "Processing: " &lt;&lt; line &lt;&lt; std::endl;
+            }
+            outFile &lt;&lt; line &lt;&lt; std::endl;
+        }
+        std::cout &lt;&lt; "Done!" &lt;&lt; std::endl;
+    } else {
+        std::cerr &lt;&lt; "Error opening files!" &lt;&lt; std::endl;
+        return 1;
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 参数类型速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>说明</th>
+                    <th>示例</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>args::Flag</code></td>
+                    <td>布尔标志</td>
+                    <td><code>-v, --verbose</code></td>
+                </tr>
+                <tr>
+                    <td><code>args::ValueFlag&lt;T&gt;</code></td>
+                    <td>单值参数</td>
+                    <td><code>-p 8080</code></td>
+                </tr>
+                <tr>
+                    <td><code>args::ValueFlagList&lt;T&gt;</code></td>
+                    <td>多值参数</td>
+                    <td><code>-I path1 -I path2</code></td>
+                </tr>
+                <tr>
+                    <td><code>args::Positional&lt;T&gt;</code></td>
+                    <td>位置参数（单值）</td>
+                    <td><code>input.txt</code></td>
+                </tr>
+                <tr>
+                    <td><code>args::PositionalList&lt;T&gt;</code></td>
+                    <td>位置参数（多值）</td>
+                    <td><code>file1 file2 file3</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> args 使用头文件方式，无需编译库，只需包含 args.hxx 即可使用。支持自动生成帮助信息。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>捕获 args::Help 异常来显示帮助信息</li>
+                <li>捕获 args::ParseError 处理解析错误</li>
+                <li>使用 args::get() 获取参数值</li>
+                <li>参数可以转换为指定类型（int, float, string 等）</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/Taywee/args" target="_blank" style="color: #4cd1a8;">args GitHub</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

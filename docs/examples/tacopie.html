@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>tacopie 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>tacopie 使用指南</h1>
+
+        <p>tacopie 是一个轻量级的 C++ 网络库，为上层应用提供底层的 TCP 连接和异步 I/O 支持。它常被用作 Redis 等应用的底层网络通信库。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>从 GitHub 获取</h3>
+        <pre><code>git clone https://github.com/Cylix/tacopie.git
+cd tacopie
+mkdir build && cd build
+cmake ..
+cmake --build .</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>TCP 客户端</h3>
+        <pre><code>#include &lt;tacopie/tacopie&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    // 创建 TCP 客户端
+    tacopie::tcp_client client;
+    
+    // 连接到服务器
+    client.connect("127.0.0.1", 8888, [](
+        tacopie::tcp_client&amp; client,
+        const std::string&amp; host,
+        uint32_t port,
+        const std::error_code&amp; ec
+    ) {
+        if (ec) {
+            std::cerr &lt;&lt; "Connection failed: " &lt;&lt; ec.message() &lt;&lt; std::endl;
+        } else {
+            std::cout &lt;&lt; "Connected to server" &lt;&lt; std::endl;
+        }
+    });
+
+    // 发送数据
+    std::string msg = "Hello, Server!";
+    client.write(msg.c_str(), msg.size());
+
+    return 0;
+}</code></pre>
+
+        <h3>TCP 服务器</h3>
+        <pre><code>#include &lt;tacopie/tacopie&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    // 创建 TCP 服务器
+    tacopie::tcp_server server;
+    
+    // 启动服务器
+    server.start("0.0.0.0", 8888, [](
+        const std::shared_ptr&lt;tacopie::tcp_socket&gt;&amp; socket
+    ) {
+        std::cout &lt;&lt; "New client connected" &lt;&lt; std::endl;
+        
+        // 设置回调处理接收到的数据
+        socket-&gt;async_read({
+            1024,
+            [](tacopie::tcp_client&amp; client, const tacopie::read_result&amp; result) {
+                if (result.success) {
+                    std::string data(result.buffer.begin(), result.buffer.end());
+                    std::cout &lt;&lt; "Received: " &lt;&lt; data &lt;&lt; std::endl;
+                }
+            }
+        });
+    });
+
+    std::this_thread::sleep_for(std::chrono::seconds(60));
+    server.stop();
+    return 0;
+}</code></pre>
+
+        <div class="note">
+            <strong>💡 提示：</strong> tacopie 专注于底层的 TCP 网络通信，提供轻量级的异步 I/O 功能，适合作为其他库的基础组件。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> tacopie 是一个较轻量级的库，功能相对简单。如果需要更完整的网络功能，可以考虑使用 Asio 等更成熟的库。
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/Cylix/tacopie" target="_blank" style="color: #4cd1a8;">tacopie GitHub</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

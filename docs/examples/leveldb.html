@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>leveldb 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>leveldb 使用指南</h1>
+
+        <p>leveldb 是 Google 开发的一个高性能、轻量级的嵌入式键值存储库，提供了快速的随机读写操作和高效的压缩。它被广泛应用于 Chrome 浏览器、LevelDB 等项目中。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>Ubuntu/Debian</h3>
+        <pre><code>sudo apt-get install libleveldb-dev</code></pre>
+
+        <h3>从 GitHub 编译</h3>
+        <pre><code>git clone https://github.com/google/leveldb.git
+cd leveldb
+mkdir build && cd build
+cmake ..
+cmake --build .
+sudo make install</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>打开/创建数据库</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    // 打开或创建数据库
+    leveldb::Status status = leveldb::DB::Open(options, "./testdb", &db);
+    
+    if (!status.ok()) {
+        std::cerr &lt;&lt; "Unable to open/create database: " &lt;&lt; status.ToString() &lt;&lt; std::endl;
+        return 1;
+    }
+
+    std::cout &lt;&lt; "Database opened successfully" &lt;&lt; std::endl;
+
+    // 关闭数据库
+    delete db;
+    return 0;
+}</code></pre>
+
+        <h3>写入和读取</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    leveldb::DB::Open(options, "./testdb", &db);
+
+    // 写入数据
+    std::string key = "user:1001";
+    std::string value = "{\"name\":\"Alice\",\"age\":25}";
+    
+    leveldb::Status status = db-&gt;Put(leveldb::WriteOptions(), key, value);
+    
+    if (!status.ok()) {
+        std::cerr &lt;&lt; "Put failed: " &lt;&lt; status.ToString() &lt;&lt; std::endl;
+    } else {
+        std::cout &lt;&lt; "Data written successfully" &lt;&lt; std::endl;
+    }
+
+    // 读取数据
+    std::string result;
+    status = db-&gt;Get(leveldb::ReadOptions(), key, &result);
+    
+    if (status.ok()) {
+        std::cout &lt;&lt; "Read: " &lt;&lt; result &lt;&lt; std::endl;
+    } else if (status.IsNotFound()) {
+        std::cout &lt;&lt; "Key not found" &lt;&lt; std::endl;
+    }
+
+    delete db;
+    return 0;
+}</code></pre>
+
+        <h3>删除数据</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    leveldb::DB::Open(options, "./testdb", &db);
+
+    // 写入数据
+    db-&gt;Put(leveldb::WriteOptions(), "temp_key", "temp_value");
+
+    // 删除数据
+    leveldb::Status status = db-&gt;Delete(leveldb::WriteOptions(), "temp_key");
+    
+    if (status.ok()) {
+        std::cout &lt;&lt; "Data deleted successfully" &lt;&lt; std::endl;
+    }
+
+    // 验证删除
+    std::string result;
+    status = db-&gt;Get(leveldb::ReadOptions(), "temp_key", &result);
+    
+    if (status.IsNotFound()) {
+        std::cout &lt;&lt; "Key deleted confirmed" &lt;&lt; std::endl;
+    }
+
+    delete db;
+    return 0;
+}</code></pre>
+
+        <h2>🔧 批量操作</h2>
+
+        <h3>批量写入</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    leveldb::DB::Open(options, "./testdb", &db);
+
+    // 创建批量写入对象
+    leveldb::WriteBatch batch;
+    
+    // 添加多个操作
+    batch.Put("key1", "value1");
+    batch.Put("key2", "value2");
+    batch.Put("key3", "value3");
+    batch.Delete("old_key");
+
+    // 执行批量写入
+    leveldb::Status status = db-&gt;Write(leveldb::WriteOptions(), &batch);
+    
+    if (status.ok()) {
+        std::cout &lt;&lt; "Batch write successful" &lt;&lt; std::endl;
+    }
+
+    delete db;
+    return 0;
+}</code></pre>
+
+        <h2>📖 遍历数据</h2>
+
+        <h3>范围查询</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    leveldb::DB::Open(options, "./testdb", &db);
+
+    // 写入一些数据
+    for (int i = 0; i &lt; 10; i++) {
+        db-&gt;Put(leveldb::WriteOptions(), "key" + std::to_string(i), "value" + std::to_string(i));
+    }
+
+    // 创建迭代器
+    leveldb::Iterator* it = db-&gt;NewIterator(leveldb::ReadOptions());
+
+    // 遍历所有数据
+    std::cout &lt;&lt; "All data:" &lt;&lt; std::endl;
+    for (it-&gt;SeekToFirst(); it-&gt;Valid(); it-&gt;Next()) {
+        std::cout &lt;&lt; "  " &lt;&lt; it-&gt;key().ToString() 
+                  &lt;&lt; " : " &lt;&lt; it-&gt;value().ToString() &lt;&lt; std::endl;
+    }
+
+    // 遍历范围
+    std::cout &lt;&lt; "\nRange query (key2 to key5):" &lt;&lt; std::endl;
+    for (it-&gt;Seek("key2"); it-&gt;Valid() && it-&gt;key().ToString() &lt;= "key5"; it-&gt;Next()) {
+        std::cout &lt;&lt; "  " &lt;&lt; it-&gt;key().ToString() 
+                  &lt;&lt; " : " &lt;&lt; it-&gt;value().ToString() &lt;&lt; std::endl;
+    }
+
+    delete it;
+    delete db;
+    return 0;
+}</code></pre>
+
+        <h2>⚙️ 高级配置</h2>
+
+        <h3>压缩和缓存设置</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;leveldb/cache.h&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    
+    // 创建 100MB 的块缓存
+    options.block_cache = leveldb::NewLRUCache(100 * 1024 * 1024);
+    
+    // 启用压缩
+    options.compression = leveldb::kSnappyCompression;
+    
+    // 如果数据库不存在则创建
+    options.create_if_missing = true;
+
+    leveldb::DB::Open(options, "./testdb", &db);
+
+    // 使用数据库...
+
+    // 清理
+    delete db;
+    delete options.block_cache;
+    
+    return 0;
+}</code></pre>
+
+        <h3>快照</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    leveldb::DB* db;
+    leveldb::Options options;
+    options.create_if_missing = true;
+
+    leveldb::DB::Open(options, "./testdb", &db);
+
+    // 写入一些数据
+    db-&gt;Put(leveldb::WriteOptions(), "key1", "value1");
+    db-&gt;Put(leveldb::WriteOptions(), "key2", "value2");
+
+    // 创建快照
+    const leveldb::Snapshot* snapshot = db-&gt;GetSnapshot();
+
+    // 继续写入数据
+    db-&gt;Put(leveldb::WriteOptions(), "key1", "new_value1");
+
+    // 从快照读取（读取的是快照时的数据）
+    leveldb::ReadOptions read_options;
+    read_options.snapshot = snapshot;
+    
+    std::string value;
+    db-&gt;Get(read_options, "key1", &value);
+    std::cout &lt;&lt; "From snapshot: " &lt;&lt; value &lt;&lt; std::endl;  // value1
+
+    // 释放快照
+    db-&gt;ReleaseSnapshot(snapshot);
+
+    delete db;
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>简单的 KV 封装</h3>
+        <pre><code>#include &lt;leveldb/db.h&gt;
+#include &lt;string&gt;
+#include &lt;iostream&gt;
+
+class LevelDBWrapper {
+private:
+    leveldb::DB* db_;
+
+public:
+    LevelDBWrapper(const std::string& path) : db_(nullptr) {
+        leveldb::Options options;
+        options.create_if_missing = true;
+
+        leveldb::Status status = leveldb::DB::Open(options, path, &db_);
+        
+        if (!status.ok()) {
+            std::cerr &lt;&lt; "Failed to open database: " &lt;&lt; status.ToString() &lt;&lt; std::endl;
+        }
+    }
+
+    ~LevelDBWrapper() {
+        if (db_) {
+            delete db_;
+        }
+    }
+
+    bool put(const std::string& key, const std::string& value) {
+        leveldb::Status status = db_-&gt;Put(leveldb::WriteOptions(), key, value);
+        return status.ok();
+    }
+
+    bool get(const std::string& key, std::string& value) {
+        leveldb::Status status = db_-&gt;Get(leveldb::ReadOptions(), key, &value);
+        return status.ok();
+    }
+
+    bool del(const std::string& key) {
+        leveldb::Status status = db_-&gt;Delete(leveldb::WriteOptions(), key);
+        return status.ok();
+    }
+
+    bool exists(const std::string& key) {
+        std::string value;
+        leveldb::Status status = db_-&gt;Get(leveldb::ReadOptions(), key, &value);
+        return status.ok() && !status.IsNotFound();
+    }
+};
+
+int main() {
+    LevelDBWrapper db("./mydb");
+
+    // 写入
+    db.put("name", "Alice");
+    db.put("age", "25");
+
+    // 读取
+    std::string name;
+    if (db.get("name", name)) {
+        std::cout &lt;&lt; "Name: " &lt;&lt; name &lt;&lt; std::endl;
+    }
+
+    // 检查存在
+    if (db.exists("name")) {
+        std::cout &lt;&lt; "Key 'name' exists" &lt;&lt; std::endl;
+    }
+
+    // 删除
+    db.del("age");
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 常用选项速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>选项</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>create_if_missing</code></td>
+                    <td>bool</td>
+                    <td>如果数据库不存在则创建</td>
+                </tr>
+                <tr>
+                    <td><code>error_if_exists</code></td>
+                    <td>bool</td>
+                    <td>如果数据库已存在则报错</td>
+                </tr>
+                <tr>
+                    <td><code>paranoid_checks</code></td>
+                    <td>bool</td>
+                    <td>启用严格检查（增加开销）</td>
+                </tr>
+                <tr>
+                    <td><code>write_buffer_size</code></td>
+                    <td>size_t</td>
+                    <td>写入缓冲区大小（默认4MB）</td>
+                </tr>
+                <tr>
+                    <td><code>max_open_files</code></td>
+                    <td>int</td>
+                    <td>最大打开文件数</td>
+                </tr>
+                <tr>
+                    <td><code>block_cache</code></td>
+                    <td>Cache*</td>
+                    <td>块缓存对象</td>
+                </tr>
+                <tr>
+                    <td><code>compression</code></td>
+                    <td>CompressionType</td>
+                    <td>压缩类型（kNoCompression/kSnappyCompression）</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> LevelDB 按键排序存储数据，利用这一特性可以进行高效的范围查询。数据在磁盘上是按键的字典序组织的。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>LevelDB 不支持多进程并发写入</li>
+                <li>需要正确释放 DB 对象和迭代器</li>
+                <li>压缩需要链接 Snappy 库</li>
+                <li>不支持 SQL 查询，仅支持键值操作</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/google/leveldb" target="_blank" style="color: #4cd1a8;">LevelDB GitHub</a></li>
+            <li><a href="https://github.com/google/leveldb/blob/master/doc/index.md" target="_blank" style="color: #4cd1a8;">官方文档</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

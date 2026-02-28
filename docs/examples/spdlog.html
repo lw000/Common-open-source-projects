@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>spdlog 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(30, 30, 50, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 100, 150, 0.3);
+        }
+
+        th {
+            background-color: rgba(76, 209, 168, 0.2);
+            color: #4cd1a8;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: rgba(100, 100, 150, 0.2);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>spdlog 使用指南</h1>
+
+        <p>spdlog 是一个快速、仅头文件的 C++ 日志库，提供了丰富的日志功能，包括多线程安全、异步日志记录、多种输出格式和自定义格式化。它被广泛应用于各种 C++ 项目中。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>通过 vcpkg 安装（推荐）</h3>
+        <pre><code>vcpkg install spdlog</code></pre>
+
+        <h3>通过 Conan 安装</h3>
+        <pre><code>conan install spdlog/1.12.0@</code></pre>
+
+        <h3>从源码编译</h3>
+        <pre><code>git clone https://github.com/gabime/spdlog.git
+cd spdlog
+mkdir build && cd build
+cmake .. -DSPDLOG_BUILD_EXAMPLE=ON
+cmake --build . --parallel</code></pre>
+
+        <h3>头文件方式使用</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/sinks/basic_file_sink.h&gt;</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>Hello World</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+
+int main() {
+    // 控制台输出
+    spdlog::info("Hello, spdlog!");
+    spdlog::warn("Warning message");
+    spdlog::error("Error message");
+    spdlog::critical("Critical error");
+
+    return 0;
+}</code></pre>
+
+        <h3>不同级别的日志</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+
+int main() {
+    // 设置日志级别
+    spdlog::set_level(spdlog::level::debug);
+
+    spdlog::trace("Trace message");
+    spdlog::debug("Debug message");
+    spdlog::info("Info message");
+    spdlog::warn("Warning message");
+    spdlog::error("Error message");
+    spdlog::critical("Critical message");
+
+    return 0;
+}</code></pre>
+
+        <h3>格式化输出</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;string&gt;
+
+int main() {
+    // 使用占位符格式化
+    int count = 42;
+    std::string name = "spdlog";
+
+    spdlog::info("Count: {}", count);
+    spdlog::info("Library: {}", name);
+    spdlog::info("Hello, {}! You have {} messages.", name, count);
+
+    // 多参数格式化
+    spdlog::info("User: {}, Age: {}, Score: {}", "Alice", 25, 95.5);
+
+    return 0;
+}</code></pre>
+
+        <h2>📝 输出到文件</h2>
+
+        <h3>创建文件日志器</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/sinks/basic_file_sink.h&gt;
+
+int main() {
+    try {
+        // 创建一个文件日志器
+        auto logger = spdlog::basic_logger_mt("basic_logger", "logs/basic.txt");
+        
+        // 设置日志级别
+        logger->set_level(spdlog::level::debug);
+        
+        // 记录日志
+        logger->info("Log to file: {}", "Hello");
+        logger->warn("This is a warning");
+        logger->error("This is an error");
+
+        // 刷新所有日志器
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>每日滚动文件</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/sinks/daily_file_sink.h&gt;
+
+int main() {
+    try {
+        // 创建每日滚动文件日志器
+        auto logger = spdlog::daily_logger_mt("daily_logger", "logs/daily.txt", 2, 30);
+        
+        logger->info("Daily log entry");
+        logger->warn("Warning in daily log");
+
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>按大小滚动文件</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/sinks/rotating_file_sink.h&gt;
+
+int main() {
+    try {
+        // 创建按大小滚动文件日志器（5MB，保留3个文件）
+        auto logger = spdlog::rotating_logger_mt("rotating_logger", "logs/rotating.txt", 1024 * 1024 * 5, 3);
+        
+        logger->info("Rotating log entry");
+        logger->warn("Warning in rotating log");
+
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>🔄 多输出目标</h2>
+
+        <h3>同时输出到控制台和文件</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/sinks/stdout_color_sinks.h&gt;
+#include &lt;spdlog/sinks/basic_file_sink.h&gt;
+
+int main() {
+    try {
+        // 创建控制台和文件 sink
+        auto console_sink = std::make_shared&lt;spdlog::sinks::stdout_color_sink_mt&gt;();
+        auto file_sink = std::make_shared&lt;spdlog::sinks::basic_file_sink_mt&gt;("logs/multisink.txt");
+
+        // 创建多 sink 日志器
+        spdlog::sinks_init_list sink_list = {console_sink, file_sink};
+        auto logger = std::make_shared&lt;spdlog::logger&gt;("multi_sink", sink_list);
+        
+        // 注册日志器
+        spdlog::register_logger(logger);
+        
+        // 输出日志（同时到控制台和文件）
+        logger->info("This goes to both console and file");
+        logger->warn("Warning message");
+
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>⚡ 异步日志</h2>
+
+        <h3>使用异步日志器</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/async.h&gt;
+#include &lt;spdlog/sinks/basic_file_sink.h&gt;
+
+int main() {
+    try {
+        // 创建异步日志器（队列大小8192）
+        auto async_logger = spdlog::basic_logger_mt&lt;spdlog::async_factory&gt;(
+            "async_logger", 
+            "logs/async.txt"
+        );
+        
+        async_logger->info("Async log message");
+        async_logger->warn("Async warning");
+        async_logger->error("Async error");
+
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>异步日志配置</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/async.h&gt;
+
+int main() {
+    try {
+        // 配置异步日志器
+        spdlog::init_thread_pool(8192, 1);  // 队列大小8192，1个线程
+
+        auto sink = std::make_shared&lt;spdlog::sinks::basic_file_sink_mt&gt;("logs/async_config.txt");
+        auto logger = std::make_shared&lt;spdlog::async_logger&gt;(
+            "async_config", 
+            sink, 
+            spdlog::thread_pool()
+        );
+        
+        spdlog::register_logger(logger);
+        logger->info("Async configured log");
+
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>🎨 自定义格式</h2>
+
+        <h3>自定义日志格式</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/pattern_formatter.h&gt;
+
+int main() {
+    // 设置全局格式
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%^%l%$] [thread %t] %v");
+
+    spdlog::info("Formatted log message");
+    spdlog::warn("Warning with custom format");
+
+    // 为特定日志器设置格式
+    auto logger = spdlog::basic_logger_mt("custom", "logs/custom.txt");
+    logger->set_pattern("[%Y-%m-%d] [%l] %v");
+    logger->info("Custom format");
+
+    spdlog::shutdown();
+    return 0;
+}</code></pre>
+
+        <h3>常用格式标识符</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>标识符</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>%v</code></td>
+                    <td>实际的消息文本</td>
+                </tr>
+                <tr>
+                    <td><code>%t</code></td>
+                    <td>线程ID</td>
+                </tr>
+                <tr>
+                    <td><code>%P</code></td>
+                    <td>进程ID</td>
+                </tr>
+                <tr>
+                    <td><code>%n</code></td>
+                    <td>日志器名称</td>
+                </tr>
+                <tr>
+                    <td><code>%l</code></td>
+                    <td>日志级别（文本）</td>
+                </tr>
+                <tr>
+                    <td><code>%L</code></td>
+                    <td>日志级别（简写）</td>
+                </tr>
+                <tr>
+                    <td><code>%Y-%m-%d %H:%M:%S</code></td>
+                    <td>日期时间</td>
+                </tr>
+                <tr>
+                    <td><code>%e</code></td>
+                    <td>毫秒</td>
+                </tr>
+                <tr>
+                    <td><code>%f</code></td>
+                    <td>微秒</td>
+                </tr>
+                <tr>
+                    <td><code>%s</code></td>
+                    <td>源文件名</td>
+                </tr>
+                <tr>
+                    <td><code>%#</code></td>
+                    <td>源代码行号</td>
+                </tr>
+                <tr>
+                    <td><code>%!</code></td>
+                    <td>函数名</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>多模块日志系统</h3>
+        <pre><code>#include &lt;spdlog/spdlog.h&gt;
+#include &lt;spdlog/sinks/stdout_color_sinks.h&gt;
+#include &lt;spdlog/sinks/basic_file_sink.h&gt;
+
+class LoggerFactory {
+public:
+    static std::shared_ptr&lt;spdlog::logger&gt; getLogger(const std::string& name) {
+        // 如果日志器已存在，直接返回
+        if (auto logger = spdlog::get(name)) {
+            return logger;
+        }
+
+        // 创建新的日志器
+        auto console_sink = std::make_shared&lt;spdlog::sinks::stdout_color_sink_mt&gt;();
+        auto file_sink = std::make_shared&lt;spdlog::sinks::basic_file_sink_mt&gt;(
+            "logs/" + name + ".log"
+        );
+
+        auto logger = std::make_shared&lt;spdlog::logger&gt;(
+            name,
+            spdlog::sinks_init_list{console_sink, file_sink}
+        );
+
+        logger->set_level(spdlog::level::debug);
+        logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%^%l%$] %v");
+        spdlog::register_logger(logger);
+
+        return logger;
+    }
+};
+
+int main() {
+    try {
+        // 获取不同模块的日志器
+        auto db_logger = LoggerFactory::getLogger("database");
+        auto network_logger = LoggerFactory::getLogger("network");
+        auto app_logger = LoggerFactory::getLogger("application");
+
+        db_logger->info("Database connection established");
+        network_logger->info("Network initialized on port 8080");
+        app_logger->info("Application started");
+
+        db_logger->warn("Slow query detected");
+        network_logger->error("Connection timeout");
+
+        spdlog::shutdown();
+    }
+    catch (const spdlog::spdlog_ex& ex) {
+        spdlog::error("Log init failed: {}", ex.what());
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 日志级别速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>级别</th>
+                    <th>数值</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>trace</code></td>
+                    <td>0</td>
+                    <td>最详细的跟踪信息</td>
+                </tr>
+                <tr>
+                    <td><code>debug</code></td>
+                    <td>1</td>
+                    <td>调试信息</td>
+                </tr>
+                <tr>
+                    <td><code>info</code></td>
+                    <td>2</td>
+                    <td>一般信息</td>
+                </tr>
+                <tr>
+                    <td><code>warn</code></td>
+                    <td>3</td>
+                    <td>警告信息</td>
+                </tr>
+                <tr>
+                    <td><code>error</code></td>
+                    <td>4</td>
+                    <td>错误信息</td>
+                </tr>
+                <tr>
+                    <td><code>critical</code></td>
+                    <td>5</td>
+                    <td>严重错误</td>
+                </tr>
+                <tr>
+                    <td><code>off</code></td>
+                    <td>6</td>
+                    <td>关闭日志</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> spdlog 是线程安全的，可以在多线程环境中安全使用。异步日志模式可以显著提高性能，特别是在高并发场景下。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>使用完毕后记得调用 <code>spdlog::shutdown()</code> 刷新所有日志器</li>
+                <li>在程序退出前要确保所有日志都已写入磁盘</li>
+                <li>异步日志的队列大小需要根据实际需求调整</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/gabime/spdlog" target="_blank" style="color: #4cd1a8;">spdlog GitHub</a></li>
+            <li><a href="https://github.com/gabime/spdlog/wiki" target="_blank" style="color: #4cd1a8;">官方 Wiki</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

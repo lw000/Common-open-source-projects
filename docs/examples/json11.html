@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>json11 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>json11 使用指南</h1>
+
+        <p>json11 是 Dropbox 开发的一个轻量级 C++ JSON 解析库，提供简单易用的 API 和高性能的 JSON 解析能力。它是一个单头文件库，易于集成。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>从 GitHub 获取</h3>
+        <pre><code>git clone https://github.com/dropbox/json11.git
+cd json11
+make
+# 或者直接包含 json11.hpp</code></pre>
+
+        <h3>头文件方式使用</h3>
+        <pre><code>#include "json11.hpp"</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>创建 JSON 对象</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+using namespace json11;
+using namespace std;
+
+int main() {
+    // 创建 JSON 对象
+    Json my_json = Json::object {
+        { "name", "Alice" },
+        { "age", 25 },
+        { "active", true }
+    };
+
+    std::string json_str = my_json.dump();
+    std::cout &lt;&lt; json_str &lt;&lt; std::endl;
+    // 输出: {"name":"Alice","age":25,"active":true}
+
+    return 0;
+}</code></pre>
+
+        <h3>创建 JSON 数组</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+
+using namespace json11;
+
+int main() {
+    // 创建 JSON 数组
+    Json my_array = Json::array {
+        "apple",
+        "banana",
+        "orange"
+    };
+
+    std::cout &lt;&lt; my_array.dump() &lt;&lt; std::endl;
+    // 输出: ["apple","banana","orange"]
+
+    // 嵌套对象和数组
+    Json nested = Json::object {
+        { "users", Json::array {
+            Json::object { { "id", 1 }, { "name", "Alice" } },
+            Json::object { { "id", 2 }, { "name", "Bob" } }
+        }},
+        { "count", 2 }
+    };
+
+    std::cout &lt;&lt; nested.dump() &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>解析 JSON 字符串</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+using namespace json11;
+using namespace std;
+
+int main() {
+    std::string json_str = R"(
+        {
+            "name": "Alice",
+            "age": 25,
+            "active": true,
+            "hobbies": ["reading", "coding", "gaming"]
+        }
+    )";
+
+    string err;
+    Json data = Json::parse(json_str, err);
+
+    if (!err.empty()) {
+        std::cerr &lt;&lt; "Parse error: " &lt;&lt; err &lt;&lt; std::endl;
+        return 1;
+    }
+
+    // 访问字段
+    std::string name = data["name"].string_value();
+    int age = data["age"].int_value();
+    bool active = data["active"].bool_value();
+
+    std::cout &lt;&lt; "Name: " &lt;&lt; name &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Age: " &lt;&lt; age &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Active: " &lt;&lt; (active ? "Yes" : "No") &lt;&lt; std::endl;
+
+    // 访问数组
+    Json hobbies = data["hobbies"];
+    std::cout &lt;&lt; "Hobbies:" &lt;&lt; std::endl;
+    for (const auto& hobby : hobbies.array_items()) {
+        std::cout &lt;&lt; "  - " &lt;&lt; hobby.string_value() &lt;&lt; std::endl;
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>🔧 高级功能</h2>
+
+        <h3>类型检查</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+
+using namespace json11;
+
+int main() {
+    Json data = Json::object {
+        { "str", "hello" },
+        { "num", 42 },
+        { "bool", true },
+        { "null", Json::null },
+        { "array", Json::array {1, 2, 3} }
+    };
+
+    // 检查类型
+    std::cout &lt;&lt; "str is string: " &lt;&lt; data["str"].is_string() &lt;&lt; std::endl;
+    std::cout &lt;&lt; "num is number: " &lt;&lt; data["num"].is_number() &lt;&lt; std::endl;
+    std::cout &lt;&lt; "bool is bool: " &lt;&lt; data["bool"].is_bool() &lt;&lt; std::endl;
+    std::cout &lt;&lt; "null is null: " &lt;&lt; data["null"].is_null() &lt;&lt; std::endl;
+    std::cout &lt;&lt; "array is array: " &lt;&lt; data["array"].is_array() &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>安全访问</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+
+using namespace json11;
+
+int main() {
+    Json data = Json::object {
+        { "name", "Alice" },
+        { "age", 25 }
+    };
+
+    // 安全访问，使用默认值
+    std::string name = data["name"].string_value();
+    std::string city = data["city"].string_value("Unknown");
+    int age = data["age"].int_value();
+    int score = data["score"].int_value(0);
+
+    std::cout &lt;&lt; "Name: " &lt;&lt; name &lt;&lt; std::endl;
+    std::cout &lt;&lt; "City: " &lt;&lt; city &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Age: " &lt;&lt; age &lt;&lt; std::endl;
+    std::cout &lt;&lt; "Score: " &lt;&lt; score &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>格式化输出</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+
+using namespace json11;
+
+int main() {
+    Json data = Json::object {
+        { "name", "Alice" },
+        { "age", 25 },
+        { "hobbies", Json::array {"reading", "coding"} }
+    };
+
+    // 压缩输出
+    std::cout &lt;&lt; "Compact: " &lt;&lt; data.dump() &lt;&lt; std::endl;
+
+    // 格式化输出（带缩进）
+    std::cout &lt;&lt; "Pretty:\n" &lt;&lt; data.dump(Json::PRETTY_PRINT) &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>配置文件读写</h3>
+        <pre><code>#include "json11.hpp"
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;string&gt;
+
+using namespace json11;
+
+class Config {
+public:
+    std::string name;
+    int port;
+    bool debug;
+    std::vector&lt;std::string&gt; hosts;
+
+    bool load(const std::string& filename) {
+        std::ifstream file(filename);
+        if (!file.is_open()) {
+            std::cerr &lt;&lt; "Failed to open config file" &lt;&lt; std::endl;
+            return false;
+        }
+
+        std::string content((std::istreambuf_iterator&lt;char&gt;(file)),
+                            std::istreambuf_iterator&lt;char&gt;());
+        file.close();
+
+        std::string err;
+        Json json = Json::parse(content, err);
+        if (!err.empty()) {
+            std::cerr &lt;&lt; "Parse error: " &lt;&lt; err &lt;&lt; std::endl;
+            return false;
+        }
+
+        name = json["name"].string_value("app");
+        port = json["port"].int_value(8080);
+        debug = json["debug"].bool_value(false);
+
+        for (const auto& host : json["hosts"].array_items()) {
+            hosts.push_back(host.string_value());
+        }
+
+        return true;
+    }
+
+    bool save(const std::string& filename) const {
+        Json json = Json::object {
+            { "name", name },
+            { "port", port },
+            { "debug", debug },
+            { "hosts", hosts }
+        };
+
+        std::ofstream file(filename);
+        if (!file.is_open()) {
+            return false;
+        }
+
+        file &lt;&lt; json.dump(Json::PRETTY_PRINT);
+        file.close();
+        return true;
+    }
+
+    void print() const {
+        std::cout &lt;&lt; "Config:" &lt;&lt; std::endl;
+        std::cout &lt;&lt; "  Name: " &lt;&lt; name &lt;&lt; std::endl;
+        std::cout &lt;&lt; "  Port: " &lt;&lt; port &lt;&lt; std::endl;
+        std::cout &lt;&lt; "  Debug: " &lt;&lt; (debug ? "Yes" : "No") &lt;&lt; std::endl;
+        std::cout &lt;&lt; "  Hosts:" &lt;&lt; std::endl;
+        for (const auto& host : hosts) {
+            std::cout &lt;&lt; "    - " &lt;&lt; host &lt;&lt; std::endl;
+        }
+    }
+};
+
+int main() {
+    Config config;
+    config.name = "MyApp";
+    config.port = 9000;
+    config.debug = true;
+    config.hosts = {"localhost", "127.0.0.1"};
+
+    // 保存配置
+    if (config.save("config.json")) {
+        std::cout &lt;&lt; "Config saved" &lt;&lt; std::endl;
+    }
+
+    // 加载配置
+    Config loaded;
+    if (loaded.load("config.json")) {
+        loaded.print();
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 Json 类型速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>判断函数</th>
+                    <th>获取函数</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>字符串</td>
+                    <td><code>is_string()</code></td>
+                    <td><code>string_value()</code></td>
+                </tr>
+                <tr>
+                    <td>数字</td>
+                    <td><code>is_number()</code></td>
+                    <td><code>int_value()</code>, <code>number_value()</code></td>
+                </tr>
+                <tr>
+                    <td>布尔</td>
+                    <td><code>is_bool()</code></td>
+                    <td><code>bool_value()</code></td>
+                </tr>
+                <tr>
+                    <td>数组</td>
+                    <td><code>is_array()</code></td>
+                    <td><code>array_items()</code></td>
+                </tr>
+                <tr>
+                    <td>对象</td>
+                    <td><code>is_object()</code></td>
+                    <td><code>object_items()</code></td>
+                </tr>
+                <tr>
+                    <td>空值</td>
+                    <td><code>is_null()</code></td>
+                    <td><code>Json::null</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> json11 非常轻量，只有一个头文件和一个源文件。适合不需要完整 JSON 功能的小型项目。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>json11 相比 nlohmann/json 功能较少</li>
+                <li>不支持 STL 容器直接转换</li>
+                <li>API 相对简单，适合轻量级应用</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/dropbox/json11" target="_blank" style="color: #4cd1a8;">json11 GitHub</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

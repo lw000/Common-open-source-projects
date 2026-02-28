@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>hiredis 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>hiredis 使用指南</h1>
+
+        <p>hiredis 是一个轻量级的 C 语言 Redis 客户端库，提供了简单、高效的接口。它是 Redis 官方推荐的 C 客户端之一，专注于高性能和简洁的 API 设计。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>Ubuntu/Debian</h3>
+        <pre><code>sudo apt-get install libhiredis-dev</code></pre>
+
+        <h3>macOS</h3>
+        <pre><code>brew install hiredis</code></pre>
+
+        <h3>从源码编译</h3>
+        <pre><code>git clone https://github.com/redis/hiredis.git
+cd hiredis
+make
+sudo make install</code></pre>
+
+        <h3>头文件</h3>
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>连接 Redis</h3>
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    // 连接到 Redis（默认地址 127.0.0.1:6379）
+    redisContext *c = redisConnect("127.0.0.1", 6379);
+    
+    if (c == NULL || c->err) {
+        if (c) {
+            printf("Connection error: %s\n", c->errstr);
+            redisFree(c);
+        } else {
+            printf("Connection error: can't allocate redis context\n");
+        }
+        return 1;
+    }
+
+    printf("Connected to Redis\n");
+    
+    // 断开连接
+    redisFree(c);
+    return 0;
+}</code></pre>
+
+        <h3>简单的 SET 和 GET</h3>
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    redisContext *c = redisConnect("127.0.0.1", 6379);
+    if (c == NULL || c->err) {
+        printf("Connection error: %s\n", c->errstr);
+        return 1;
+    }
+
+    // SET key value
+    redisReply *reply = (redisReply *)redisCommand(c, "SET %s %s", "name", "hiredis");
+    printf("SET: %s\n", reply->str);
+    freeReplyObject(reply);
+
+    // GET key
+    reply = (redisReply *)redisCommand(c, "GET %s", "name");
+    printf("GET name: %s\n", reply->str);
+    freeReplyObject(reply);
+
+    redisFree(c);
+    return 0;
+}</code></pre>
+
+        <h3>处理不同类型的数据</h3>
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    redisContext *c = redisConnect("127.0.0.1", 6379);
+    if (c == NULL || c->err) return 1;
+
+    // 字符串操作
+    redisReply *reply = (redisReply *)redisCommand(c, "SET %s %s", "counter", "100");
+    freeReplyObject(reply);
+
+    reply = (redisReply *)redisCommand(c, "INCR %s", "counter");
+    printf("INCR counter: %lld\n", reply->integer);
+    freeReplyObject(reply);
+
+    // 列表操作 LPUSH
+    reply = (redisReply *)redisCommand(c, "LPUSH mylist item1 item2 item3");
+    printf("LPUSH: %lld\n", reply->integer);
+    freeReplyObject(reply);
+
+    // 列表操作 LRANGE
+    reply = (redisReply *)redisCommand(c, "LRANGE mylist 0 -1");
+    printf("LRANGE mylist:\n");
+    for (size_t i = 0; i &lt; reply->elements; i++) {
+        printf("  [%zu]: %s\n", i, reply->element[i]->str);
+    }
+    freeReplyObject(reply);
+
+    redisFree(c);
+    return 0;
+}</code></pre>
+
+        <h2>🔐 带密码连接</h2>
+
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+
+int main() {
+    // 带密码连接
+    redisContext *c = redisConnectWithTimeout(
+        "127.0.0.1", 
+        6379, 
+        (struct timeval){.tv_sec = 2, .tv_usec = 0}
+    );
+
+    if (c == NULL || c->err) {
+        printf("Connection error: %s\n", c->errstr);
+        return 1;
+    }
+
+    // 认证
+    redisReply *reply = (redisReply *)redisCommand(c, "AUTH %s", "your_password");
+    if (reply->type == REDIS_REPLY_ERROR) {
+        printf("AUTH failed: %s\n", reply->str);
+    } else {
+        printf("AUTH success\n");
+    }
+    freeReplyObject(reply);
+
+    redisFree(c);
+    return 0;
+}</code></pre>
+
+        <h2>🔄 管道操作</h2>
+
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+int main() {
+    redisContext *c = redisConnect("127.0.0.1", 6379);
+    if (c == NULL || c->err) return 1;
+
+    // 发送多个命令但不读取回复
+    redisAppendCommand(c, "SET key1 value1");
+    redisAppendCommand(c, "SET key2 value2");
+    redisAppendCommand(c, "SET key3 value3");
+    redisAppendCommand(c, "GET key1");
+    redisAppendCommand(c, "GET key2");
+
+    // 读取所有回复
+    redisReply *reply;
+    for (int i = 0; i &lt; 5; i++) {
+        redisGetReply(c, (void **)&reply);
+        printf("Reply %d: ", i + 1);
+        if (reply->type == REDIS_REPLY_STRING) {
+            printf("%s\n", reply->str);
+        } else if (reply->type == REDIS_REPLY_STATUS) {
+            printf("%s\n", reply->str);
+        } else {
+            printf("(type: %d)\n", reply->type);
+        }
+        freeReplyObject(reply);
+    }
+
+    redisFree(c);
+    return 0;
+}</code></pre>
+
+        <h2>⚡ 异步连接</h2>
+
+        <pre><code>#include &lt;hiredis/async.h&gt;
+#include &lt;hiredis/adapters/libevent.h&gt;
+#include &lt;event2/event.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+void connectCallback(const redisAsyncContext *c, int status) {
+    if (status != REDIS_OK) {
+        printf("Connect error: %s\n", c->errstr);
+        return;
+    }
+    printf("Connected to Redis (async)\n");
+}
+
+void disconnectCallback(const redisAsyncContext *c, int status) {
+    if (status != REDIS_OK) {
+        printf("Disconnect error: %s\n", c->errstr);
+        return;
+    }
+    printf("Disconnected\n");
+}
+
+void getCallback(redisAsyncContext *c, void *r, void *privdata) {
+    redisReply *reply = (redisReply *)r;
+    if (reply == NULL) return;
+    
+    printf("GET result: %s\n", reply->str);
+}
+
+int main() {
+    struct event_base *base = event_base_new();
+
+    redisAsyncContext *c = redisAsyncConnect("127.0.0.1", 6379);
+    if (c->err) {
+        printf("Connection error: %s\n", c->errstr);
+        return 1;
+    }
+
+    redisLibeventAttach(c, base);
+    redisAsyncSetConnectCallback(c, connectCallback);
+    redisAsyncSetDisconnectCallback(c, disconnectCallback);
+
+    // 异步命令
+    redisAsyncCommand(c, NULL, NULL, "SET %s %s", "async_key", "async_value");
+    redisAsyncCommand(c, getCallback, NULL, "GET %s", "async_key");
+
+    event_base_dispatch(base);
+
+    event_base_free(base);
+    return 0;
+}</code></pre>
+
+        <h2>📊 处理不同回复类型</h2>
+
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+
+void printReply(redisReply *reply) {
+    switch (reply->type) {
+        case REDIS_REPLY_STRING:
+            printf("STRING: %s\n", reply->str);
+            break;
+        case REDIS_REPLY_ARRAY:
+            printf("ARRAY (%zu elements):\n", reply->elements);
+            for (size_t i = 0; i &lt; reply->elements; i++) {
+                printf("  [%zu] ", i);
+                printReply(reply->element[i]);
+            }
+            break;
+        case REDIS_REPLY_INTEGER:
+            printf("INTEGER: %lld\n", reply->integer);
+            break;
+        case REDIS_REPLY_NIL:
+            printf("NIL\n");
+            break;
+        case REDIS_REPLY_STATUS:
+            printf("STATUS: %s\n", reply->str);
+            break;
+        case REDIS_REPLY_ERROR:
+            printf("ERROR: %s\n", reply->str);
+            break;
+        default:
+            printf("UNKNOWN type: %d\n", reply->type);
+    }
+}
+
+int main() {
+    redisContext *c = redisConnect("127.0.0.1", 6379);
+    if (c == NULL || c->err) return 1;
+
+    // 设置一些数据
+    redisCommand(c, "SET key1 value1");
+    redisCommand(c, "LPUSH list1 a b c d e");
+
+    // 测试不同类型的回复
+    redisReply *reply;
+
+    // STRING
+    reply = (redisReply *)redisCommand(c, "GET key1");
+    printf("GET key1: ");
+    printReply(reply);
+    freeReplyObject(reply);
+
+    // INTEGER
+    reply = (redisReply *)redisCommand(c, "LLEN list1");
+    printf("LLEN list1: ");
+    printReply(reply);
+    freeReplyObject(reply);
+
+    // ARRAY
+    reply = (redisReply *)redisCommand(c, "LRANGE list1 0 -1");
+    printf("LRANGE list1: ");
+    printReply(reply);
+    freeReplyObject(reply);
+
+    // NIL
+    reply = (redisReply *)redisCommand(c, "GET nonexistent");
+    printf("GET nonexistent: ");
+    printReply(reply);
+    freeReplyObject(reply);
+
+    redisFree(c);
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>简单的缓存封装</h3>
+        <pre><code>#include &lt;hiredis/hiredis.h&gt;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+
+class RedisCache {
+private:
+    redisContext *context_;
+
+public:
+    RedisCache(const char *host = "127.0.0.1", int port = 6379) {
+        context_ = redisConnect(host, port);
+        if (context_ == NULL || context_->err) {
+            printf("Redis connection failed\n");
+            context_ = NULL;
+        }
+    }
+
+    ~RedisCache() {
+        if (context_) {
+            redisFree(context_);
+        }
+    }
+
+    bool isConnected() const {
+        return context_ != NULL;
+    }
+
+    bool set(const char *key, const char *value, int seconds = 0) {
+        redisReply *reply;
+        if (seconds &gt; 0) {
+            reply = (redisReply *)redisCommand(context_, "SETEX %s %d %s", key, seconds, value);
+        } else {
+            reply = (redisReply *)redisCommand(context_, "SET %s %s", key, value);
+        }
+
+        bool success = (reply->type == REDIS_REPLY_STATUS);
+        freeReplyObject(reply);
+        return success;
+    }
+
+    bool get(const char *key, char *buffer, size_t buffer_size) {
+        redisReply *reply = (redisReply *)redisCommand(context_, "GET %s", key);
+        
+        bool success = false;
+        if (reply->type == REDIS_REPLY_STRING && reply->len &lt; buffer_size) {
+            strncpy(buffer, reply->str, buffer_size);
+            success = true;
+        }
+        
+        freeReplyObject(reply);
+        return success;
+    }
+
+    bool del(const char *key) {
+        redisReply *reply = (redisReply *)redisCommand(context_, "DEL %s", key);
+        bool success = (reply->integer &gt; 0);
+        freeReplyObject(reply);
+        return success;
+    }
+};
+
+int main() {
+    RedisCache cache;
+
+    if (!cache.isConnected()) {
+        printf("Failed to connect to Redis\n");
+        return 1;
+    }
+
+    // 设置缓存（10秒过期）
+    cache.set("user:1001", "{\"name\":\"Alice\",\"age\":25}", 10);
+
+    // 获取缓存
+    char value[256];
+    if (cache.get("user:1001", value, sizeof(value))) {
+        printf("Cached data: %s\n", value);
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 Redis 回复类型速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>类型常量</th>
+                    <th>数值</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>REDIS_REPLY_STRING</code></td>
+                    <td>1</td>
+                    <td>字符串</td>
+                </tr>
+                <tr>
+                    <td><code>REDIS_REPLY_ARRAY</code></td>
+                    <td>2</td>
+                    <td>数组</td>
+                </tr>
+                <tr>
+                    <td><code>REDIS_REPLY_INTEGER</code></td>
+                    <td>3</td>
+                    <td>整数</td>
+                </tr>
+                <tr>
+                    <td><code>REDIS_REPLY_NIL</code></td>
+                    <td>4</td>
+                    <td>空值</td>
+                </tr>
+                <tr>
+                    <td><code>REDIS_REPLY_STATUS</code></td>
+                    <td>5</td>
+                    <td>状态</td>
+                </tr>
+                <tr>
+                    <td><code>REDIS_REPLY_ERROR</code></td>
+                    <td>6</td>
+                    <td>错误</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> hiredis 是线程不安全的。如果在多线程环境中使用，每个线程应该有自己的 redisContext，或者使用连接池。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>每次调用 redisCommand 或 redisCommandArgv 后必须调用 freeReplyObject 释放内存</li>
+                <li>使用完毕后必须调用 redisFree 释放连接</li>
+                <li>检查连接状态和错误码（c->err）</li>
+                <li>异步模式需要配合 libevent 或其他事件循环库使用</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/redis/hiredis" target="_blank" style="color: #4cd1a8;">hiredis GitHub</a></li>
+            <li><a href="https://redis.com/redis-enterprise/technology/redis-clients/" target="_blank" style="color: #4cd1a8;">Redis 客户端文档</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>
