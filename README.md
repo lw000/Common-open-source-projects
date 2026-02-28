@@ -8,7 +8,7 @@
 
 ## 🌐 在线预览
 
-项目主页：[C++ 开源库精选基地](https://levi-cpp-lib.github.io/)
+项目主页：[C++ 开源库精选基地](https://www.clongg.com/)
 
 ## 📂 项目结构
 
@@ -102,7 +102,7 @@ Common-open-source-projects/
 
 1. 克隆项目仓库
 ```bash
-git clone https://github.com/your-username/Common-open-source-projects.git
+git clone https://github.com/lw000/Common-open-source-projects.git
 cd Common-open-source-projects
 ```
 
