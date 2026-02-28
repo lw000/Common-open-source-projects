@@ -46,6 +46,7 @@
             gap: 25px;
             width: 90%;
             max-width: 1400px;
+            flex-grow: 1; /* 让内容区域占据剩余空间 */
         }
 
         /* --- 单个库的卡片样式 --- */
@@ -97,6 +98,31 @@
         .library-url:hover {
             background-color: rgba(76, 209, 168, 0.2);
             text-shadow: 0 0 5px rgba(76, 209, 168, 0.5);
+        }
+
+        /* --- 页脚样式 --- */
+        footer {
+            margin-top: auto; /* 将页脚推到底部 */
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+            background-color: rgba(15, 12, 41, 0.8); /* 与背景色一致的半透深色 */
+            border-top: 1px solid rgba(100, 100, 255, 0.1);
+        }
+
+        .footer-text {
+            font-size: 0.9em;
+            color: #a0a0cc;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8; /* 使用与链接相同的青绿色 */
+            text-decoration: none;
+        }
+
+        .contact-link:hover {
+            text-decoration: underline;
         }
 
         /* --- 响应式设计 --- */
@@ -202,6 +228,12 @@
         </div>
         
     </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p class="footer-text">&copy; 2026 C++ 开源库精选. 版权所有·LEVI.</p>
+        <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+    </footer>
 
 </body>
 </html>
