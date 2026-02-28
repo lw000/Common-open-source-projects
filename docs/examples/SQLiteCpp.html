@@ -54,6 +54,30 @@
         }
         a { color: #4cd1a8; text-decoration: none; }
         a:hover { color: #6ab7ff; }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -284,9 +308,11 @@ db.exec("CREATE TABLE test (id INTEGER, name TEXT)");
             <li><a href="https://github.com/SRombauts/SQLiteCpp/tree/master/examples" target="_blank">示例代码</a></li>
         </ul>
 
-        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
-            <p>&copy; 2026 SQLiteCpp 使用指南</p>
-        </div>
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
     </div>
 </body>
 </html>

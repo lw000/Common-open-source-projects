@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sol2 使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>🌙 sol2 使用指南</h1>
+        <p class="subtitle">现代 C++/Lua 绑定库</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/ThePhD/sol2" target="_blank">https://github.com/ThePhD/sol2</a></p>
+            <p><strong>官方文档：</strong><a href="https://sol2.readthedocs.io/" target="_blank">https://sol2.readthedocs.io/</a></p>
+        </div>
+
+        <h2>📖 什么是 sol2？</h2>
+        <p>sol2 是一个现代、轻量、高性能的 C++17/20 头文件库，用于在 C++ 和 Lua 之间进行无缝交互。它是 sol（Simple Object Lua）库的现代版本，提供了更简洁、更安全、更高效的 API。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>单头文件引入</h3>
+        <pre><code>// 下载 sol.hpp 并直接包含
+#include "sol.hpp"</code></pre>
+
+        <h3>使用 vcpkg</h3>
+        <pre><code>vcpkg install sol2</code></pre>
+
+        <h3>使用 Conan</h3>
+        <pre><code>conan install sol2/3.3.0@</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>Hello World</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include "sol.hpp"
+
+int main() {
+    // 创建 Lua 状态
+    sol::state lua;
+
+    // 执行 Lua 代码
+    lua.script("print('Hello from Lua!')");
+
+    // 从 C++ 调用 Lua 函数
+    lua.script("function greet(name) return 'Hello, ' .. name .. '!' end");
+    std::string greeting = lua["greet"]("World");
+    std::cout &lt;&lt; greeting &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>从 C++ 向 Lua 传递数据</h3>
+        <pre><code>sol::state lua;
+
+// 设置全局变量
+lua["x"] = 24;
+lua["y"] = 16;
+lua["message"] = "Hello from C++";
+
+// 执行 Lua 代码
+lua.script(R"(
+    print(x + y)
+    print(message)
+    print(x * y)
+)");</code></pre>
+
+        <h3>在 Lua 中调用 C++ 函数</h3>
+        <pre><code>// C++ 函数
+int add(int a, int b) {
+    return a + b;
+}
+
+std::string greet(const std::string& name) {
+    return "Hello, " + name + "!";
+}
+
+void print_vector(const std::vector&lt;int&gt;& v) {
+    for (int x : v) {
+        std::cout &lt;&lt; x &lt;&lt; " ";
+    }
+    std::cout &lt;&lt; std::endl;
+}
+
+int main() {
+    sol::state lua;
+
+    // 注册 C++ 函数到 Lua
+    lua["add"] = add;
+    lua["greet"] = greet;
+    lua["print_vector"] = print_vector;
+
+    // 在 Lua 中调用
+    lua.script(R"(
+        print(add(5, 3))
+        print(greet("Lua"))
+        print_vector({1, 2, 3, 4, 5})
+    )");
+
+    return 0;
+}</code></pre>
+
+        <h3>从 C++ 创建 Lua 表</h3>
+        <pre><code>sol::state lua;
+
+// 创建表
+sol::table config = lua.create_table();
+config["width"] = 1920;
+config["height"] = 1080;
+config["fullscreen"] = true;
+
+// 创建嵌套表
+config["display"] = lua.create_table_with(
+    "brightness", 0.8,
+    "contrast", 1.2
+);
+
+// 在 Lua 中访问
+lua.script(R"(
+    print(config.width)
+    print(config.height)
+    print(config.display.brightness)
+)");</code></pre>
+
+        <h3>从 Lua 获取复杂数据</h3>
+        <pre><code>lua.script(R"(
+    player = {
+        name = "John",
+        level = 25,
+        inventory = {"sword", "shield", "potion"}
+    }
+)");
+
+// 获取表
+sol::table player = lua["player"];
+std::string name = player["name"];
+int level = player["level"];
+
+// 获取数组
+std::vector&lt;std::string&gt; inventory = player["inventory"];
+
+std::cout &lt;&lt; "Name: " &lt;&lt; name &lt;&lt; ", Level: " &lt;&lt; level &lt;&lt; std::endl;
+for (const auto& item : inventory) {
+    std::cout &lt;&lt; "Item: " &lt;&lt; item &lt;&lt; std::endl;
+}</code></pre>
+
+        <h3>C++ 类绑定到 Lua</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include "sol.hpp"
+
+// C++ 类
+class Player {
+private:
+    std::string name_;
+    int health_;
+
+public:
+    Player(const std::string& name, int health)
+        : name_(name), health_(health) {}
+
+    void attack(int damage) {
+        std::cout &lt;&lt; name_ &lt;&lt; " attacks for " &lt;&lt; damage &lt;&lt; " damage!" &lt;&lt; std::endl;
+    }
+
+    void heal(int amount) {
+        health_ += amount;
+        std::cout &lt;&lt; name_ &lt;&lt; " heals for " &lt;&lt; amount &lt;&lt; " HP!" &lt;&lt; std::endl;
+    }
+
+    std::string getName() const { return name_; }
+    int getHealth() const { return health_; }
+};
+
+int main() {
+    sol::state lua;
+
+    // 绑定类到 Lua
+    lua.new_usertype&lt;Player&gt;("Player",
+        // 构造函数
+        sol::constructors&lt;Player(const std::string&, int)&gt;(),
+        // 属性
+        "name", &Player::getName,
+        "health", &Player::getHealth,
+        // 方法
+        "attack", &Player::attack,
+        "heal", &Player::heal
+    );
+
+    // 在 Lua 中使用
+    lua.script(R"(
+        local player = Player.new("Hero", 100)
+        print(player.name)
+        print("Health:", player.health)
+        
+        player:attack(25)
+        player:heal(10)
+    )");
+
+    return 0;
+}</code></pre>
+
+        <h3>使用 Lua 表作为配置</h3>
+        <pre><code>// 加载配置文件
+lua.script_file("config.lua");
+
+// 读取配置
+std::string server = lua["config"]["server"];
+int port = lua["config"]["port"];
+bool debug = lua["config"]["debug"];
+
+std::cout &lt;&lt; "Server: " &lt;&lt; server &lt;&lt; ":" &lt;&lt; port &lt;&lt; std::endl;
+std::cout &lt;&lt; "Debug: " &lt;&lt; (debug ? "on" : "off") &lt;&lt; std::endl;
+
+/*
+-- config.lua 内容
+config = {
+    server = "localhost",
+    port = 8080,
+    debug = true,
+    log_file = "app.log"
+}
+*/</code></pre>
+
+        <h3>调用 Lua 脚本文件</h3>
+        <pre><code>lua.script_file("game_logic.lua");
+
+// 脚本中定义的函数
+auto initGame = lua["initGame"];
+auto updateGame = lua["updateGame"];
+auto processInput = lua["processInput"];
+
+// 调用 Lua 函数
+initGame();
+updateGame(0.016f);  // delta time
+processInput("W", "up");
+
+/* 
+-- game_logic.lua 内容
+function initGame()
+    print("Game initialized!")
+end
+
+function updateGame(dt)
+    print("Update: " .. dt)
+end
+
+function processInput(key, action)
+    print("Key: " .. key .. ", Action: " .. action)
+end
+*/</code></pre>
+
+        <h3>异常处理</h3>
+        <pre><code>sol::state lua;
+
+// 捕获 Lua 错误
+try {
+    lua.script("this is invalid lua code");
+} catch (sol::error& e) {
+    std::cerr &lt;&lt; "Lua 错误: " &lt;&lt; e.what() &lt;&lt; std::endl;
+}
+
+// 安全执行
+auto result = lua.safe_script("return 1 + 1");
+if (result.valid()) {
+    std::cout &lt;&lt; "结果: " &lt;&lt; result.get&lt;int&gt;() &lt;&lt; std::endl;
+} else {
+    sol::error err = result;
+    std::cerr &lt;&lt; "执行失败: " &lt;&lt; err.what() &lt;&lt; std::endl;
+}</code></pre>
+
+        <h2>🎯 sol2 主要特性</h2>
+        <ul style="margin-left: 20px; color: #d0d0ff;">
+            <li><strong>纯头文件：</strong>无需编译，直接包含即可使用</li>
+            <li><strong>类型安全：</strong>编译时类型检查，减少运行时错误</li>
+            <li><strong>零开销：</strong>接近原生 Lua C API 的性能</li>
+            <li><strong>现代 C++：</strong>充分利用 C++17/20 特性</li>
+            <li><strong>异常安全：</strong>支持异常处理和错误恢复</li>
+        </ul>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://sol2.readthedocs.io/" target="_blank">官方文档</a></li>
+            <li><a href="https://github.com/ThePhD/sol2" target="_blank">GitHub 仓库</a></li>
+            <li><a href="https://github.com/ThePhD/sol2/tree/develop/examples" target="_blank">官方示例</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

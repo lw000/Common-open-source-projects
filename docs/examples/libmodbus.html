@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>libmodbus 使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>📡 libmodbus 使用指南</h1>
+        <p class="subtitle">Modbus 协议通信库</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/stephane/libmodbus" target="_blank">https://github.com/stephane/libmodbus</a></p>
+            <p><strong>官方文档：</strong><a href="https://libmodbus.org/documentation/" target="_blank">https://libmodbus.org/documentation/</a></p>
+        </div>
+
+        <h2>📖 什么是 libmodbus？</h2>
+        <p>libmodbus 是一个免费的开源软件库，用于与遵守 Modbus 协议的设备发送/接收数据。该库可以使用串口或以太网连接。库中的函数源自 Modicon Modbus 协议参考指南。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>Linux (Ubuntu/Debian)</h3>
+        <pre><code>sudo apt-get update
+sudo apt-get install libmodbus-dev</code></pre>
+
+        <h3>macOS (Homebrew)</h3>
+        <pre><code>brew install libmodbus</code></pre>
+
+        <h3>从源码编译</h3>
+        <pre><code># 安装依赖
+sudo apt-get install autoconf automake libtool
+
+# 克隆仓库
+git clone https://github.com/stephane/libmodbus.git
+cd libmodbus
+
+# 生成配置脚本
+./autogen.sh
+
+# 配置、编译和安装
+./configure --prefix=/usr/local
+make
+sudo make install
+
+# 更新库缓存
+sudo ldconfig</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>Modbus TCP 客户端 - 读取寄存器</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;modbus/modbus.h&gt;
+
+int main() {
+    modbus_t *ctx = NULL;
+    uint16_t tab_reg[32];
+    int rc;
+    int i;
+
+    // 创建 Modbus TCP 上下文
+    ctx = modbus_new_tcp("127.0.0.1", 502);
+    if (ctx == NULL) {
+        std::cerr &lt;&lt; "无法创建 Modbus 上下文" &lt;&lt; std::endl;
+        return -1;
+    }
+
+    // 连接到设备
+    if (modbus_connect(ctx) == -1) {
+        std::cerr &lt;&lt; "连接失败: " &lt;&lt; modbus_strerror(errno) &lt;&lt; std::endl;
+        modbus_free(ctx);
+        return -1;
+    }
+
+    std::cout &lt;&lt; "已连接到 Modbus 设备" &lt;&lt; std::endl;
+
+    // 读取保持寄存器
+    rc = modbus_read_registers(ctx, 0, 0, 10, tab_reg);
+    if (rc == -1) {
+        std::cerr &lt;&lt; "读取寄存器失败" &lt;&lt; std::endl;
+    } else {
+        std::cout &lt;&lt; "读取到 " &lt;&lt; rc &lt;&lt; " 个寄存器:" &lt;&lt; std::endl;
+        for (i = 0; i &lt; rc; i++) {
+            std::cout &lt;&lt; "[" &lt;&lt; i &lt;&lt; "]: " &lt;&lt; tab_reg[i] &lt;&lt; std::endl;
+        }
+    }
+
+    // 关闭连接和释放资源
+    modbus_close(ctx);
+    modbus_free(ctx);
+
+    return 0;
+}</code></pre>
+
+        <h3>Modbus RTU 客户端 - 串口通信</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;modbus/modbus.h&gt;
+
+int main() {
+    modbus_t *ctx = NULL;
+    uint16_t tab_reg[32];
+    int rc;
+
+    // 创建 Modbus RTU 上下文（串口）
+    ctx = modbus_new_rtu("/dev/ttyUSB0", 19200, 'N', 8, 1);
+    if (ctx == NULL) {
+        std::cerr &lt;&lt; "无法创建 RTU 上下文" &lt;&lt; std::endl;
+        return -1;
+    }
+
+    // 设置 RTU 模式
+    modbus_set_slave(ctx, 1);  // 从站地址
+    modbus_rtu_set_serial_mode(ctx, MODBUS_RTU_RS232);
+    modbus_rtu_set_rts(ctx, MODBUS_RTU_RTS_UP);
+
+    // 连接到设备
+    if (modbus_connect(ctx) == -1) {
+        std::cerr &lt;&lt; "连接失败" &lt;&lt; std::endl;
+        modbus_free(ctx);
+        return -1;
+    }
+
+    std::cout &lt;&lt; "已连接到 RTU 设备" &lt;&lt; std::endl;
+
+    // 读取输入寄存器
+    rc = modbus_read_input_registers(ctx, 0, 0, 10, tab_reg);
+    if (rc == -1) {
+        std::cerr &lt;&lt; "读取失败" &lt;&lt; std::endl;
+    } else {
+        for (int i = 0; i &lt; rc; i++) {
+            std::cout &lt;&lt; "输入寄存器 " &lt;&lt; i &lt;&lt; ": " &lt;&lt; tab_reg[i] &lt;&lt; std::endl;
+        }
+    }
+
+    modbus_close(ctx);
+    modbus_free(ctx);
+
+    return 0;
+}</code></pre>
+
+        <h3>写入单个寄存器</h3>
+        <pre><code>modbus_t *ctx = modbus_new_tcp("192.168.1.100", 502);
+
+if (modbus_connect(ctx) == -1) {
+    std::cerr &lt;&lt; "连接失败" &lt;&lt; std::endl;
+    modbus_free(ctx);
+    return -1;
+}
+
+// 设置从站地址
+modbus_set_slave(ctx, 1);
+
+// 写入单个保持寄存器
+uint16_t value = 1234;
+int rc = modbus_write_register(ctx, 0, value);
+
+if (rc == -1) {
+    std::cerr &lt;&lt; "写入失败: " &lt;&lt; modbus_strerror(errno) &lt;&lt; std::endl;
+} else {
+    std::cout &lt;&lt; "写入成功，值: " &lt;&lt; value &lt;&lt; std::endl;
+}
+
+modbus_close(ctx);
+modbus_free(ctx);</code></pre>
+
+        <h3>写入多个寄存器</h3>
+        <pre><code>modbus_t *ctx = modbus_new_tcp("192.168.1.100", 502);
+
+modbus_connect(ctx);
+modbus_set_slave(ctx, 1);
+
+// 准备数据
+uint16_t tab_reg[10];
+for (int i = 0; i &lt; 10; i++) {
+    tab_reg[i] = i * 100;
+}
+
+// 写入多个保持寄存器
+int rc = modbus_write_registers(ctx, 0, 10, tab_reg);
+
+if (rc == -1) {
+    std::cerr &lt;&lt; "批量写入失败" &lt;&lt; std::endl;
+} else {
+    std::cout &lt;&lt; "成功写入 " &lt;&lt; rc &lt;&lt; " 个寄存器" &lt;&lt; std::endl;
+}
+
+modbus_close(ctx);
+modbus_free(ctx);</code></pre>
+
+        <h3>读取线圈</h3>
+        <pre><code>modbus_t *ctx = modbus_new_tcp("192.168.1.100", 502);
+
+modbus_connect(ctx);
+modbus_set_slave(ctx, 1);
+
+// 读取线圈
+uint8_t tab_bits[32];
+int rc = modbus_read_bits(ctx, 0, 10, tab_bits);
+
+if (rc == -1) {
+    std::cerr &lt;&lt; "读取线圈失败" &lt;&lt; std::endl;
+} else {
+    std::cout &lt;&lt; "读取到 " &lt;&lt; rc &lt;&lt; " 个线圈:" &lt;&lt; std::endl;
+    for (int i = 0; i &lt; rc; i++) {
+        std::cout &lt;&lt; "线圈 " &lt;&lt; i &lt;&lt; ": " &lt;&lt; (tab_bits[i] ? "ON" : "OFF") &lt;&lt; std::endl;
+    }
+}
+
+modbus_close(ctx);
+modbus_free(ctx);</code></pre>
+
+        <h3>写入线圈</h3>
+        <pre><code>modbus_t *ctx = modbus_new_tcp("192.168.1.100", 502);
+
+modbus_connect(ctx);
+modbus_set_slave(ctx, 1);
+
+// 写入单个线圈
+int rc = modbus_write_bit(ctx, 0, 1);  // 地址 0，值 1 (ON）
+
+if (rc == -1) {
+    std::cerr &lt;&lt; "写入线圈失败" &lt;&lt; std::endl;
+} else {
+    std::cout &lt;&lt; "线圈设置成功" &lt;&lt; std::endl;
+}
+
+// 写入多个线圈
+uint8_t tab_bits[2] = {1, 0};
+rc = modbus_write_bits(ctx, 0, 2, tab_bits);
+
+modbus_close(ctx);
+modbus_free(ctx);</code></pre>
+
+        <h3>Modbus TCP 服务器</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;modbus/modbus.h&gt;
+#include &lt;modbus/modbus-tcp.h&gt;
+#include &lt;unistd.h&gt;
+
+#define MODBUS_TCP_PORT 502
+#define SERVER_ADDRESS "0.0.0.0"
+
+int main() {
+    int socket;
+    modbus_t *ctx;
+    modbus_mapping_t *mb_mapping;
+    uint8_t query[MODBUS_TCP_MAX_ADU_LENGTH];
+    int rc;
+
+    // 创建 Modbus TCP 上下文
+    ctx = modbus_new_tcp(NULL, MODBUS_TCP_PORT);
+    if (ctx == NULL) {
+        std::cerr &lt;&lt; "无法创建上下文" &lt;&lt; std::endl;
+        return -1;
+    }
+
+    // 创建映射表
+    mb_mapping = modbus_mapping_new(500, 500, 500, 500);
+    if (mb_mapping == NULL) {
+        std::cerr &lt;&lt; "无法创建映射" &lt;&lt; std::endl;
+        modbus_free(ctx);
+        return -1;
+    }
+
+    // 设置初始数据
+    for (int i = 0; i &lt; 500; i++) {
+        mb_mapping->tab_registers[i] = i;
+    }
+
+    // 启动服务器
+    socket = modbus_tcp_listen(ctx, 1);
+    if (socket == -1) {
+        std::cerr &lt;&lt; "无法启动服务器" &lt;&lt; std::endl;
+        modbus_mapping_free(mb_mapping);
+        modbus_free(ctx);
+        return -1;
+    }
+
+    std::cout &lt;&lt; "Modbus TCP 服务器运行中..." &lt;&lt; std::endl;
+
+    // 接受连接
+    while (1) {
+        int client_socket = modbus_tcp_accept(ctx, &socket);
+        if (client_socket == -1) {
+            continue;
+        }
+
+        std::cout &lt;&lt; "客户端已连接" &lt;&lt; std::endl;
+
+        // 处理请求
+        while (1) {
+            rc = modbus_receive(ctx, query);
+            if (rc > 0) {
+                // 处理查询
+                rc = modbus_reply(ctx, query, rc, mb_mapping);
+            } else if (rc == -1) {
+                break;
+            }
+        }
+
+        close(client_socket);
+    }
+
+    modbus_mapping_free(mb_mapping);
+    modbus_free(ctx);
+
+    return 0;
+}</code></pre>
+
+        <h3>设置超时和重试</h3>
+        <pre><code>modbus_t *ctx = modbus_new_tcp("192.168.1.100", 502);
+
+// 设置响应超时（毫秒）
+struct timeval response_timeout;
+response_timeout.tv_sec = 1;  // 1秒
+response_timeout.tv_usec = 0;
+modbus_set_response_timeout(ctx, &response_timeout);
+
+// 设置字节间超时
+struct timeval byte_timeout;
+byte_timeout.tv_sec = 0;
+byte_timeout.tv_usec = 500000;  // 500毫秒
+modbus_set_byte_timeout(ctx, &byte_timeout);
+
+// 调试模式（打印 Modbus 帧）
+modbus_set_debug(ctx, TRUE);
+
+// 设置重试次数
+int retries = 3;
+while (retries-- > 0) {
+    int rc = modbus_read_registers(ctx, 0, 0, 10, tab_reg);
+    if (rc != -1) break;
+    
+    std::cout &lt;&lt; "重试... 剩余: " &lt;&lt; retries &lt;&lt; std::endl;
+    usleep(100000);  // 等待 100ms
+}</code></pre>
+
+        <h2>🎯 Modbus 功能码速查</h2>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <tr style="background: rgba(106, 183, 255, 0.2);">
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">功能</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">功能码</th>
+                <th style="padding: 12px; text-align: left; color: #6ab7ff;">libmodbus 函数</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">读取线圈</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">0x01</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>modbus_read_bits()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">读取离散输入</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">0x02</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>modbus_read_input_bits()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">读取保持寄存器</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">0x03</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>modbus_read_registers()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">读取输入寄存器</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">0x04</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>modbus_read_input_registers()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">写入单个线圈</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">0x05</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>modbus_write_bit()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">写入单个寄存器</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);">0x06</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(100, 150, 255, 0.1);"><code>modbus_write_register()</code></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px;">写入多个寄存器</td>
+                <td style="padding: 10px;">0x10</td>
+                <td style="padding: 10px;"><code>modbus_write_registers()</code></td>
+            </tr>
+        </table>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://libmodbus.org/documentation/" target="_blank">libmodbus 官方文档</a></li>
+            <li><a href="https://github.com/stephane/libmodbus" target="_blank">GitHub 仓库</a></li>
+            <li><a href="https://libmodbus.org/documentation/v3.1.6/" target="_blank">API 文档</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -153,6 +153,30 @@
             text-decoration: none;
         }
 
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -527,9 +551,11 @@ int main() {
             <li><a href="https://github.com/libcpr/cpr/tree/master/examples" target="_blank">官方示例代码</a></li>
         </ul>
 
-        <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid rgba(100, 150, 255, 0.3); text-align: center; color: #a0a0cc;">
-            <p>&copy; 2026 CPR 使用指南 | 让 C++ HTTP 请求变得简单</p>
-        </div>
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
     </div>
 </body>
 </html>

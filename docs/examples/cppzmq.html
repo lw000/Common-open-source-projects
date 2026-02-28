@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cppzmq 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(30, 30, 50, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 100, 150, 0.3);
+        }
+
+        th {
+            background-color: rgba(76, 209, 168, 0.2);
+            color: #4cd1a8;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: rgba(100, 100, 150, 0.2);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>cppzmq 使用指南</h1>
+
+        <p>cppzmq 是 ZeroMQ 的 C++ 绑定库，是一个轻量级的、仅包含头文件的绑定，提供了一套现代 C++ 接口，用于在 C++ 应用程序中使用 ZeroMQ。它基于 RAII 模式，自动管理资源，使 ZeroMQ 的使用更加安全和便捷。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>前置要求</h3>
+        <p>cppzmq 需要先安装 ZeroMQ 库：</p>
+        <pre><code># Ubuntu/Debian
+sudo apt-get install libzmq3-dev
+
+# macOS
+brew install zeromq
+
+# Windows (vcpkg)
+vcpkg install zeromq:x64-windows</code></pre>
+
+        <h3>通过 vcpkg 安装</h3>
+        <pre><code>vcpkg install cppzmq</code></pre>
+
+        <h3>通过 CMake 安装</h3>
+        <pre><code>git clone https://github.com/zeromq/cppzmq.git
+cd cppzmq
+mkdir build && cd build
+cmake ..
+cmake --install .</code></pre>
+
+        <h3>头文件方式使用</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;  // 仅需一个头文件
+// 链接时需要 -lzmq</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>Hello World（REQ-REP 模式）</h3>
+
+        <h4>服务器端（REP）</h4>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    // 创建 ZeroMQ 上下文
+    zmq::context_t context(1);
+
+    // 创建 REP 套接字
+    zmq::socket_t socket(context, ZMQ_REP);
+    socket.bind("tcp://*:5555");
+
+    std::cout &lt;&lt; "Server started, waiting for requests...\n";
+
+    while (true) {
+        // 接收请求
+        zmq::message_t request;
+        socket.recv(request, zmq::recv_flags::none);
+        std::string req_str(static_cast&lt;char*&gt;(request.data()), request.size());
+        std::cout &lt;&lt; "Received: " &lt;&lt; req_str &lt;&lt; "\n";
+
+        // 发送响应
+        std::string reply = "World";
+        zmq::message_t response(reply.begin(), reply.end());
+        socket.send(response, zmq::send_flags::none);
+    }
+
+    return 0;
+}</code></pre>
+
+        <h4>客户端（REQ）</h4>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    // 创建 ZeroMQ 上下文
+    zmq::context_t context(1);
+
+    // 创建 REQ 套接字
+    zmq::socket_t socket(context, ZMQ_REQ);
+    socket.connect("tcp://localhost:5555");
+
+    // 发送请求
+    std::string request_str = "Hello";
+    zmq::message_t request(request_str.begin(), request_str.end());
+    std::cout &lt;&lt; "Sending: " &lt;&lt; request_str &lt;&lt; "\n";
+    socket.send(request, zmq::send_flags::none);
+
+    // 接收响应
+    zmq::message_t reply;
+    socket.recv(reply, zmq::recv_flags::none);
+    std::string reply_str(static_cast&lt;char*&gt;(reply.data()), reply.size());
+    std::cout &lt;&lt; "Received: " &lt;&lt; reply_str &lt;&lt; "\n";
+
+    return 0;
+}</code></pre>
+
+        <h2>📤📥 PUB-SUB 模式（发布-订阅）</h2>
+
+        <h3>发布者（PUB）</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;chrono&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t publisher(context, ZMQ_PUB);
+    publisher.bind("tcp://*:5556");
+
+    std::cout &lt;&lt; "Publisher started\n";
+
+    int count = 0;
+    while (count &lt; 10) {
+        // 发布消息
+        std::string topic = "news";
+        std::string message = "Update #" + std::to_string(count++);
+
+        // 先发送主题
+        zmq::message_t topic_msg(topic.begin(), topic.end());
+        publisher.send(topic_msg, zmq::send_flags::sndmore);
+
+        // 再发送消息内容
+        zmq::message_t content_msg(message.begin(), message.end());
+        publisher.send(content_msg, zmq::send_flags::none);
+
+        std::cout &lt;&lt; "Published: " &lt;&lt; topic &lt;&lt; " - " &lt;&lt; message &lt;&lt; "\n";
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>订阅者（SUB）</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t subscriber(context, ZMQ_SUB);
+    subscriber.connect("tcp://localhost:5556");
+
+    // 设置过滤器：只订阅 "news" 主题
+    std::string filter = "news";
+    subscriber.set(zmq::sockopt::subscribe, filter);
+
+    std::cout &lt;&lt; "Subscriber started\n";
+
+    while (true) {
+        // 接收主题
+        zmq::message_t topic_msg;
+        subscriber.recv(topic_msg, zmq::recv_flags::none);
+        std::string topic(static_cast&lt;char*&gt;(topic_msg.data()), topic_msg.size());
+
+        // 接收消息内容
+        zmq::message_t content_msg;
+        auto recv_result = subscriber.recv(content_msg, zmq::recv_flags::none);
+        std::string content(static_cast&lt;char*&gt;(content_msg.data()), content_msg.size());
+
+        std::cout &lt;&lt; "Received: [" &lt;&lt; topic &lt;&lt; "] " &lt;&lt; content &lt;&lt; "\n";
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>⚡ PUSH-PULL 模式（管道）</h2>
+
+        <h3>推拉者（PUSH）</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;chrono&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t pusher(context, ZMQ_PUSH);
+    pusher.bind("tcp://*:5557");
+
+    std::cout &lt;&lt; "Pusher started\n";
+
+    for (int i = 0; i &lt; 10; i++) {
+        std::string message = "Task #" + std::to_string(i);
+        zmq::message_t msg(message.begin(), message.end());
+        
+        pusher.send(msg, zmq::send_flags::none);
+        std::cout &lt;&lt; "Sent: " &lt;&lt; message &lt;&lt; "\n";
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>拉取者（PULL）</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t puller(context, ZMQ_PULL);
+    puller.connect("tcp://localhost:5557");
+
+    std::cout &lt;&lt; "Puller started\n";
+
+    while (true) {
+        zmq::message_t msg;
+        auto recv_result = puller.recv(msg, zmq::recv_flags::none);
+        
+        std::string message(static_cast&lt;char*&gt;(msg.data()), msg.size());
+        std::cout &lt;&lt; "Received: " &lt;&lt; message 
+                  &lt;&lt; " on thread " &lt;&lt; std::this_thread::get_id() &lt;&lt; "\n";
+        
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>🔄 高级功能</h2>
+
+        <h3>多部分消息</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t sender(context, ZMQ_PAIR);
+    sender.bind("inproc://test");
+
+    zmq::socket_t receiver(context, ZMQ_PAIR);
+    receiver.connect("inproc://test");
+
+    // 发送多部分消息
+    std::string part1 = "Header";
+    std::string part2 = "Body";
+    std::string part3 = "Footer";
+
+    zmq::message_t msg1(part1.begin(), part1.end());
+    zmq::message_t msg2(part2.begin(), part2.end());
+    zmq::message_t msg3(part3.begin(), part3.end());
+
+    // 使用 sndmore 标志发送多部分消息
+    sender.send(msg1, zmq::send_flags::sndmore);
+    sender.send(msg2, zmq::send_flags::sndmore);
+    sender.send(msg3, zmq::send_flags::none);
+
+    std::cout &lt;&lt; "Sent 3-part message\n";
+
+    // 接收多部分消息
+    zmq::message_t recv1, recv2, recv3;
+    receiver.recv(recv1, zmq::recv_flags::none);
+    receiver.recv(recv2, zmq::recv_flags::none);
+    receiver.recv(recv3, zmq::recv_flags::none);
+
+    std::cout &lt;&lt; "Received: " 
+              &lt;&lt; std::string(static_cast&lt;char*&gt;(recv1.data()), recv1.size()) &lt;&lt; " "
+              &lt;&lt; std::string(static_cast&lt;char*&gt;(recv2.data()), recv2.size()) &lt;&lt; " "
+              &lt;&lt; std::string(static_cast&lt;char*&gt;(recv3.data()), recv3.size()) &lt;&lt; "\n";
+
+    return 0;
+}</code></pre>
+
+        <h3>设置超时</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t socket(context, ZMQ_SUB);
+    socket.connect("tcp://localhost:5556");
+    socket.set(zmq::sockopt::subscribe, "");
+
+    // 设置接收超时（毫秒）
+    int timeout_ms = 1000;
+    socket.set(zmq::sockopt::rcvtimeo, timeout_ms);
+
+    std::cout &lt;&lt; "Waiting for messages with 1s timeout...\n";
+
+    while (true) {
+        zmq::message_t msg;
+        auto result = socket.recv(msg, zmq::recv_flags::none);
+
+        if (result) {
+            std::cout &lt;&lt; "Received: " 
+                      &lt;&lt; std::string(static_cast&lt;char*&gt;(msg.data()), msg.size()) &lt;&lt; "\n";
+        } else {
+            std::cout &lt;&lt; "Timeout, no message received\n";
+        }
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>设置发送/接收缓冲区大小</h3>
+        <pre><code>zmq::socket_t socket(context, ZMQ_PUB);
+
+// 设置发送缓冲区大小（消息数）
+int sndhwm = 1000;
+socket.set(zmq::sockopt::sndhwm, sndhwm);
+
+// 设置接收缓冲区大小
+int rcvhwm = 1000;
+socket.set(zmq::sockopt::rcvhwm, rcvhwm);</code></pre>
+
+        <h3>使用 poll 监听多个套接字</h3>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;zmq_poll.h&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    zmq::context_t context(1);
+
+    // 创建两个订阅者
+    zmq::socket_t sub1(context, ZMQ_SUB);
+    sub1.connect("tcp://localhost:5556");
+    sub1.set(zmq::sockopt::subscribe, "topic1");
+
+    zmq::socket_t sub2(context, ZMQ_SUB);
+    sub2.connect("tcp://localhost:5557");
+    sub2.set(zmq::sockopt::subscribe, "topic2");
+
+    // 设置 poll 项
+    zmq::pollitem_t items[] = {
+        { static_cast&lt;void*&gt;(sub1), 0, ZMQ_POLLIN, 0 },
+        { static_cast&lt;void*&gt;(sub2), 0, ZMQ_POLLIN, 0 }
+    };
+
+    std::cout &lt;&lt; "Listening on both sockets...\n";
+
+    while (true) {
+        // 等待任一套接字有消息（超时 -1 表示无限等待）
+        zmq::poll(items, 2, -1);
+
+        // 检查 sub1
+        if (items[0].revents & ZMQ_POLLIN) {
+            zmq::message_t msg;
+            sub1.recv(msg, zmq::recv_flags::none);
+            std::cout &lt;&lt; "From sub1: " 
+                      &lt;&lt; std::string(static_cast&lt;char*&gt;(msg.data()), msg.size()) &lt;&lt; "\n";
+        }
+
+        // 检查 sub2
+        if (items[1].revents & ZMQ_POLLIN) {
+            zmq::message_t msg;
+            sub2.recv(msg, zmq::recv_flags::none);
+            std::cout &lt;&lt; "From sub2: " 
+                      &lt;&lt; std::string(static_cast&lt;char*&gt;(msg.data()), msg.size()) &lt;&lt; "\n";
+        }
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>任务分发系统</h3>
+        <h4>任务分发器（Ventilator）</h4>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;vector&gt;
+
+int main() {
+    zmq::context_t context(1);
+
+    // 接收客户端的请求
+    zmq::socket_t receiver(context, ZMQ_PULL);
+    receiver.bind("tcp://*:5555");
+
+    // 发送任务给工作节点
+    zmq::socket_t sender(context, ZMQ_PUSH);
+    sender.bind("tcp://*:5557");
+
+    std::cout &lt;&lt; "Task dispatcher started\n";
+
+    // 等待客户端准备就绪
+    zmq::message_t msg;
+    receiver.recv(msg, zmq::recv_flags::none);
+    std::cout &lt;&lt; "Client ready, starting to send tasks\n";
+
+    // 发送100个任务
+    for (int i = 0; i &lt; 100; i++) {
+        std::string task = "Task_" + std::to_string(i);
+        zmq::message_t task_msg(task.begin(), task.end());
+        sender.send(task_msg, zmq::send_flags::none);
+    }
+
+    // 发送结束信号
+    std::string done = "DONE";
+    zmq::message_t done_msg(done.begin(), done.end());
+    sender.send(done_msg, zmq::send_flags::none);
+
+    std::cout &lt;&lt; "All tasks sent\n";
+
+    return 0;
+}</code></pre>
+
+        <h4>工作节点（Worker）</h4>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+#include &lt;random&gt;
+
+int main() {
+    zmq::context_t context(1);
+
+    // 接收任务
+    zmq::socket_t receiver(context, ZMQ_PULL);
+    receiver.connect("tcp://localhost:5557");
+
+    // 发送结果
+    zmq::socket_t sender(context, ZMQ_PUSH);
+    sender.connect("tcp://localhost:5558");
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution&lt;&gt; dis(100, 500);
+
+    while (true) {
+        zmq::message_t msg;
+        receiver.recv(msg, zmq::recv_flags::none);
+
+        std::string task(static_cast&lt;char*&gt;(msg.data()), msg.size());
+
+        if (task == "DONE") {
+            std::cout &lt;&lt; "Worker finished\n";
+            break;
+        }
+
+        // 处理任务（模拟）
+        int process_time = dis(gen);
+        std::cout &lt;&lt; "Processing: " &lt;&lt; task 
+                  &lt;&lt; " (" &lt;&lt; process_time &lt;&lt; "ms)\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(process_time));
+
+        // 发送结果
+        zmq::message_t result(msg.data(), msg.size());
+        sender.send(result, zmq::send_flags::none);
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>实时日志系统</h3>
+        <h4>日志收集器</h4>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+#include &lt;chrono&gt;
+#include &lt;ctime&gt;
+
+std::string get_timestamp() {
+    auto now = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::to_time_t(now);
+    char buf[100];
+    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+    return buf;
+}
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t collector(context, ZMQ_SUB);
+    collector.bind("tcp://*:5559");
+
+    // 订阅所有主题
+    collector.set(zmq::sockopt::subscribe, "");
+
+    std::ofstream logfile("application.log", std::ios::app);
+
+    std::cout &lt;&lt; "Log collector started\n";
+
+    while (true) {
+        // 接收日志级别（主题）
+        zmq::message_t level_msg;
+        collector.recv(level_msg, zmq::recv_flags::none);
+        std::string level(static_cast&lt;char*&gt;(level_msg.data()), level_msg.size());
+
+        // 接收日志消息
+        zmq::message_t msg;
+        collector.recv(msg, zmq::recv_flags::none);
+        std::string log_msg(static_cast&lt;char*&gt;(msg.data()), msg.size());
+
+        // 格式化日志
+        std::string formatted = "[" + get_timestamp() + "] [" + level + "] " + log_msg;
+
+        // 输出到控制台
+        std::cout &lt;&lt; formatted &lt;&lt; "\n";
+
+        // 写入文件
+        logfile &lt;&lt; formatted &lt;&lt; "\n";
+        logfile.flush();
+    }
+
+    return 0;
+}</code></pre>
+
+        <h4>日志生成器</h4>
+        <pre><code>#include &lt;zmq.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;thread&gt;
+
+int main() {
+    zmq::context_t context(1);
+    zmq::socket_t logger(context, ZMQ_PUB);
+    logger.connect("tcp://localhost:5559");
+
+    std::this_thread::sleep_for(std::chrono::seconds(1));  // 等待连接
+
+    while (true) {
+        std::string level;
+        std::string message;
+
+        std::cout &lt;&lt; "Enter level (INFO/WARN/ERROR): ";
+        std::cin &gt;&gt; level;
+
+        std::cout &lt;&lt; "Enter message: ";
+        std::cin.ignore();
+        std::getline(std::cin, message);
+
+        // 发送多部分消息：主题 + 内容
+        zmq::message_t level_msg(level.begin(), level.end());
+        logger.send(level_msg, zmq::send_flags::sndmore);
+
+        zmq::message_t msg(message.begin(), message.end());
+        logger.send(msg, zmq::send_flags::none);
+
+        std::cout &lt;&lt; "Log sent\n";
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 ZeroMQ 套接字类型速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>类型</th>
+                    <th>方向</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>ZMQ_REQ</code></td>
+                    <td>客户端</td>
+                    <td>请求-响应客户端</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_REP</code></td>
+                    <td>服务端</td>
+                    <td>请求-响应服务端</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_DEALER</code></td>
+                    <td>客户端</td>
+                    <td>高级请求-响应客户端</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_ROUTER</code></td>
+                    <td>服务端</td>
+                    <td>高级请求-响应服务端</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_PUB</code></td>
+                    <td>发布者</td>
+                    <td>发布-订阅模式发布者</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_SUB</code></td>
+                    <td>订阅者</td>
+                    <td>发布-订阅模式订阅者</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_PUSH</code></td>
+                    <td>推拉者</td>
+                    <td>管道模式推送端</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_PULL</code></td>
+                    <td>拉取者</td>
+                    <td>管道模式拉取端</td>
+                </tr>
+                <tr>
+                    <td><code>ZMQ_PAIR</code></td>
+                    <td>对等</td>
+                    <td>对等通信模式</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> cppzmq 使用 RAII 模式自动管理资源，套接字在析构时会自动关闭，上下文在析构时会自动终止。这比原生的 C API 更安全。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>PUB-SUB 模式中，订阅者可能会丢失发布者在订阅连接前发送的消息</li>
+                <li>确保正确处理 zmq::sockopt::subscribe 设置（空字符串订阅所有主题）</li>
+                <li>多部分消息中，最后一帧不要使用 sndmore 标志</li>
+                <li>使用 poll 时注意处理超时情况</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/zeromq/cppzmq" target="_blank" style="color: #4cd1a8;">cppzmq GitHub</a></li>
+            <li><a href="https://zeromq.org/" target="_blank" style="color: #4cd1a8;">ZeroMQ 官方网站</a></li>
+            <li><a href="https://zguide.zeromq.org/" target="_blank" style="color: #4cd1a8;">ZeroMQ 指南</a></li>
+        </ul>
+
+        <a href="../index.html" class="back-link" style="margin-top: 30px;">← 返回主页</a>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SObjectizer 使用指南</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(30, 30, 60, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        }
+        h1 { font-size: 2.5em; color: #6ab7ff; margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #a0a0ff; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid rgba(100, 150, 255, 0.3); }
+        h2 { font-size: 1.8em; color: #4cd1a8; margin-top: 40px; margin-bottom: 20px; }
+        h3 { font-size: 1.4em; color: #ff9f7f; margin-top: 30px; margin-bottom: 15px; }
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border: 1px solid rgba(100, 150, 255, 0.2);
+        }
+        pre code { color: #e0e0ff; font-size: 0.9em; line-height: 1.6; }
+        .info-box {
+            background: rgba(106, 183, 255, 0.15);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(106, 183, 255, 0.3);
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: rgba(76, 209, 168, 0.2);
+            border-radius: 8px;
+            color: #4cd1a8;
+            text-decoration: none;
+        }
+        a { color: #4cd1a8; text-decoration: none; }
+        a:hover { color: #6ab7ff; }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回库列表</a>
+
+        <h1>🎭 SObjectizer 使用指南</h1>
+        <p class="subtitle">C++ Actor、发布/订阅和 CSP 框架</p>
+
+        <div class="info-box">
+            <p><strong>项目地址：</strong><a href="https://github.com/Stiffstream/sobjectizer" target="_blank">https://github.com/Stiffstream/sobjectizer</a></p>
+            <p><strong>官方文档：</strong><a href="https://stiffstream.github.io/sobjectizer/" target="_blank">https://stiffstream.github.io/sobjectizer/</a></p>
+        </div>
+
+        <h2>📖 什么是 SObjectizer？</h2>
+        <p>SObjectizer 是一个在相当小巧的 C++ 框架中实现 Actor、发布/订阅和 CSP 模型的框架。其性能、质量和稳定性已在多年的生产环境中得到验证。</p>
+
+        <p>SObjectizer 允许将并发应用程序创建为一组代理对象，这些代理对象通过异步消息相互交互。它负责消息分发，并为消息处理提供工作上下文。</p>
+
+        <h2>🚀 安装方式</h2>
+
+        <h3>从源码编译</h3>
+        <pre><code>git clone https://github.com/Stiffstream/sobjectizer.git
+cd sobjectizer
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release --parallel
+sudo cmake --install .</code></pre>
+
+        <h3>使用 vcpkg</h3>
+        <pre><code>vcpkg install sobjectizer</code></pre>
+
+        <h2>💡 基础使用</h2>
+
+        <h3>第一个 Actor - Hello World</h3>
+        <pre><code>#include &lt;iostream&gt;
+#include &lt;so_5/all.hpp&gt;
+
+class hello_actor final : public so_5::agent_t {
+public:
+    using so_5::agent_t::agent_t;
+
+    void so_evt_start() override {
+        std::cout &lt;&lt; "Hello, World!" &lt;&lt; std::endl;
+        // 结束示例工作
+        so_deregister_agent_coop_normally();
+    }
+};
+
+int main() {
+    // 启动 SObjectizer
+    so_5::launch([](so_5::environment_t & env) {
+        // 在新的 cooperation 中添加 hello_actor 实例
+        env.register_agent_as_coop(env.make_agent&lt;hello_actor&gt;());
+    });
+
+    return 0;
+}</code></pre>
+
+        <h3>Actor 之间发送消息</h3>
+        <pre><code>#include &lt;so_5/all.hpp&gt;
+
+// 定义消息类型
+struct msg_hello final : public so_5::message_t {
+    std::string greeting;
+    
+    explicit msg_hello(std::string g) : greeting(std::move(g)) {}
+};
+
+// 接收者 Actor
+class receiver_actor final : public so_5::agent_t {
+public:
+    using so_5::agent_t::agent_t;
+
+    void so_define_agent() override {
+        // 定义消息处理
+        so_subscribe_self().event(&receiver_actor::on_hello);
+    }
+
+private:
+    void on_hello(const msg_hello & msg) {
+        std::cout &lt;&lt; "收到消息: " &lt;&lt; msg.greeting &lt;&lt; std::endl;
+        so_environment().stop();
+    }
+};
+
+// 发送者 Actor
+class sender_actor final : public so_5::agent_t {
+public:
+    sender_actor(context_t ctx, so_5::mbox_t dest)
+        : so_5::agent_t(ctx)
+        , dest_(std::move(dest)) {}
+
+    void so_evt_start() override {
+        // 发送消息
+        so_5::send&lt;msg_hello&gt;(dest_, "Hello from Sender!");
+    }
+
+private:
+    so_5::mbox_t dest_;
+};
+
+int main() {
+    so_5::launch([](so_5::environment_t & env) {
+        // 创建 cooperation
+        auto coop = env.create_coop("demo");
+        
+        auto receiver = env.make_agent&lt;receiver_actor&gt;();
+        auto sender = env.make_agent&lt;sender_actor&gt;(receiver->so_direct_mbox());
+        
+        env.register_agent_as_coop(std::move(coop), std::move(receiver));
+    });
+
+    return 0;
+}</code></pre>
+
+        <h3>定时器 - Periodic Message</h3>
+        <pre><code>class time_actor final : public so_5::agent_t {
+public:
+    using so_5::agent_t::agent_t;
+
+    void so_evt_start() override {
+        // 每 2 秒发送一次消息给自己
+        so_subscribe_self()
+            .event([this](mhood_t&lt;msg_timer&gt;) {
+                std::cout &lt;&lt; "定时器触发!" &lt;&lt; std::endl;
+                // 继续定时
+                so_5::send_delayed&lt;msg_timer&gt;(
+                    *this,
+                    std::chrono::seconds(2)
+                );
+            });
+        
+        // 启动第一个定时器
+        so_5::send_delayed&lt;msg_timer&gt;(*this, std::chrono::seconds(2));
+    }
+};</code></pre>
+
+        <h3>发布-订阅模式</h3>
+        <pre><code>#include &lt;so_5/all.hpp&gt;
+
+// 定义消息
+struct msg_news final : public so_5::message_t {
+    std::string headline;
+    explicit msg_news(std::string h) : headline(std::move(h)) {}
+};
+
+// 订阅者 Actor
+class subscriber_actor final : public so_5::agent_t {
+public:
+    subscriber_actor(context_t ctx, so_5::mbox_t pub_channel)
+        : so_5::agent_t(ctx)
+        , pub_channel_(std::move(pub_channel)) {}
+
+    void so_define_agent() override {
+        // 订阅发布通道
+        so_subscribe(pub_channel_).event(&subscriber_actor::on_news);
+    }
+
+private:
+    void on_news(const msg_news & msg) {
+        std::cout &lt;&lt; "订阅者: " &lt;&lt; msg.headline &lt;&lt; std::endl;
+    }
+
+    so_5::mbox_t pub_channel_;
+};
+
+// 发布者 Actor
+class publisher_actor final : public so_5::agent_t {
+public:
+    publisher_actor(context_t ctx, so_5::mbox_t pub_channel)
+        : so_5::agent_t(ctx)
+        , pub_channel_(std::move(pub_channel)) {}
+
+    void so_evt_start() override {
+        // 发布消息
+        so_5::send&lt;msg_news&gt;(
+            pub_channel_,
+            "SObjectizer 5.8 发布了!"
+        );
+        so_environment().stop();
+    }
+
+private:
+    so_5::mbox_t pub_channel_;
+};
+
+int main() {
+    so_5::launch([](so_5::environment_t & env) {
+        // 创建发布通道
+        auto pub_channel = env.create_mbox("news_channel");
+        
+        auto coop = env.create_coop("pubsub");
+        
+        auto publisher = env.make_agent&lt;publisher_actor&gt;(pub_channel);
+        auto sub1 = env.make_agent&lt;subscriber_actor&gt;(pub_channel);
+        auto sub2 = env.make_agent&lt;subscriber_actor&gt;(pub_channel);
+        
+        env.register_agent_as_coop(std::move(coop), 
+                                   std::move(publisher),
+                                   std::move(sub1),
+                                   std::move(sub2));
+    });
+
+    return 0;
+}</code></pre>
+
+        <h3>CSP 风格的通道</h3>
+        <pre><code>#include &lt;so_5/all.hpp&gt;
+
+// 生产者
+class producer_actor final : public so_5::agent_t {
+public:
+    producer_actor(context_t ctx, so_5::mchain_t&lt;int&gt; chain)
+        : so_5::agent_t(ctx)
+        , chain_(std::move(chain)) {}
+
+    void so_evt_start() override {
+        // 生产数据并发送到通道
+        for (int i = 0; i &lt; 10; ++i) {
+            so_5::send&lt;int&gt;(chain_, i);
+            std::cout &lt;&lt; "生产: " &lt;&lt; i &lt;&lt; std::endl;
+        }
+    }
+
+private:
+    so_5::mchain_t&lt;int&gt; chain_;
+};
+
+// 消费者
+class consumer_actor final : public so_5::agent_t {
+public:
+    consumer_actor(context_t ctx, so_5::mchain_t&lt;int&gt; chain)
+        : so_5::agent_t(ctx)
+        , chain_(std::move(chain)) {}
+
+    void so_evt_start() override {
+        // 从通道消费数据
+        receive(from(chain_).handle_all([&](int value) {
+            std::cout &lt;&lt; "消费: " &lt;&lt; value &lt;&lt; std::endl;
+        }));
+        
+        so_environment().stop();
+    }
+
+private:
+    so_5::mchain_t&lt;int&gt; chain_;
+};
+
+int main() {
+    so_5::launch([](so_5::environment_t & env) {
+        // 创建通道（容量 10）
+        auto chain = env.create_mchain&lt;int&gt;(
+            so_5::mchain_props_t{10},
+            "demo_chain"
+        );
+        
+        auto coop = env.create_coop("csp_demo");
+        auto producer = env.make_agent&lt;producer_actor&gt;(chain);
+        auto consumer = env.make_agent&lt;consumer_actor&gt;(chain);
+        
+        env.register_agent_as_coop(std::move(coop),
+                                   std::move(producer),
+                                   std::move(consumer));
+    });
+
+    return 0;
+}</code></pre>
+
+        <h2>🎯 核心概念</h2>
+        <ul style="margin-left: 20px; color: #d0d0ff;">
+            <li><strong>Agent（代理）：</strong>并发的基本单元，通过消息交互</li>
+            <li><strong>Cooperation（协作）：</strong>一组相关联的 agent 集合</li>
+            <li><strong>Mailbox（信箱）：</strong>用于接收和传递消息</li>
+            <li><strong>Message（消息）：</strong>agent 之间通信的数据结构</li>
+            <li><strong>MChain（消息链）：</strong>CSP 风格的通道</li>
+        </ul>
+
+        <h2>📚 更多资源</h2>
+        <ul>
+            <li><a href="https://stiffstream.github.io/sobjectizer/" target="_blank">官方文档</a></li>
+            <li><a href="https://github.com/Stiffstream/sobjectizer" target="_blank">GitHub 仓库</a></li>
+            <li><a href="https://github.com/Stiffstream/sobjectizer/tree/master/dev/sample" target="_blank">官方示例</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

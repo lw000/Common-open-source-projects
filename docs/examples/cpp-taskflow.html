@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cpp-TaskFlow 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 10px 20px;
+            background-color: rgba(76, 209, 168, 0.1);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.2);
+            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: rgba(30, 30, 50, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 100, 150, 0.3);
+        }
+
+        th {
+            background-color: rgba(76, 209, 168, 0.2);
+            color: #4cd1a8;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: rgba(100, 100, 150, 0.2);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>Cpp-TaskFlow 使用指南</h1>
+
+        <p>Cpp-TaskFlow 是一个现代 C++ 并发编程库，用于简化并行任务的定义和执行。它提供声明式的任务图定义、高效的并行执行、丰富的任务依赖控制等功能。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>通过 vcpkg 安装</h3>
+        <pre><code>vcpkg install taskflow</code></pre>
+
+        <h3>通过 Conan 安装</h3>
+        <pre><code>conan install taskflow/3.6.0@</code></pre>
+
+        <h3>从源码编译</h3>
+        <pre><code>git clone https://github.com/cpp-taskflow/cpp-taskflow.git
+cd cpp-taskflow
+mkdir build && cd build
+cmake ..
+cmake --build . --parallel</code></pre>
+
+        <h3>头文件方式使用</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;  // 仅需一个头文件</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>Hello World 示例</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    // 创建任务流
+    tf::Taskflow taskflow;
+
+    // 创建一个简单任务
+    auto [A, B, C] = taskflow.emplace(
+        [] () { std::cout &lt;&lt; "Task A\n"; },
+        [] () { std::cout &lt;&lt; "Task B\n"; },
+        [] () { std::cout &lt;&lt; "Task C\n"; }
+    );
+
+    // 设置任务依赖：A -> B -> C
+    A.precede(B);  // A 在 B 之前执行
+    B.precede(C);  // B 在 C 之前执行
+
+    // 创建执行器并运行任务流
+    tf::Executor executor;
+    executor.run(taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>并行执行任务</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;thread&gt;
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor(4);  // 使用 4 个工作线程
+
+    // 创建三个并行任务
+    auto [A, B, C] = taskflow.emplace(
+        [] () { 
+            std::cout &lt;&lt; "Task A on thread " &lt;&lt; std::this_thread::get_id() &lt;&lt; "\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        },
+        [] () { 
+            std::cout &lt;&lt; "Task B on thread " &lt;&lt; std::this_thread::get_id() &lt;&lt; "\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        },
+        [] () { 
+            std::cout &lt;&lt; "Task C on thread " &lt;&lt; std::this_thread::get_id() &lt;&lt; "\n";
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    );
+
+    // 执行并等待完成
+    executor.run(taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h2>🔗 任务依赖</h2>
+
+        <h3>线性依赖链</h3>
+        <pre><code>auto [A, B, C, D] = taskflow.emplace(
+    [] () { std::cout &lt;&lt; "A\n"; },
+    [] () { std::cout &lt;&lt; "B\n"; },
+    [] () { std::cout &lt;&lt; "C\n"; },
+    [] () { std::cout &lt;&lt; "D\n"; }
+);
+
+// A -> B -> C -> D
+A.precede(B).precede(C).precede(D);</code></pre>
+
+        <h3>分支依赖</h3>
+        <pre><code>auto [A, B, C, D] = taskflow.emplace(
+    [] () { std::cout &lt;&lt; "A\n"; },
+    [] () { std::cout &lt;&lt; "B\n"; },
+    [] () { std::cout &lt;&lt; "C\n"; },
+    [] () { std::cout &lt;&lt; "D\n"; }
+);
+
+// A -> B, A -> C, B, C -> D
+A.precede(B, C);  // A 完成后 B 和 C 可以并行执行
+B.precede(D);
+C.precede(D);</code></pre>
+
+        <h3>复杂任务图</h3>
+        <pre><code>tf::Taskflow taskflow;
+
+auto [A, B, C, D, E, F] = taskflow.emplace(
+    [] () { std::cout &lt;&lt; "A\n"; },
+    [] () { std::cout &lt;&lt; "B\n"; },
+    [] () { std::cout &lt;&lt; "C\n"; },
+    [] () { std::cout &lt;&lt; "D\n"; },
+    [] () { std::cout &lt;&lt; "E\n"; },
+    [] () { std::cout &lt;&lt; "F\n"; }
+);
+
+//     A
+//    / \
+//   B   C
+//  / \ / \
+// D   E   F
+A.precede(B, C);
+B.precede(D, E);
+C.precede(E, F);
+
+executor.run(taskflow).wait();</code></pre>
+
+        <h2>📊 高级功能</h2>
+
+        <h3>条件任务</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;random&gt;
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor;
+
+    // 创建任务
+    auto init = taskflow.emplace([] () { std::cout &lt;&lt; "Initialize\n"; });
+    auto condition = taskflow.emplace(
+        [] () {
+            // 返回 0 或 1，决定走哪个分支
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_int_distribution&lt;&gt; dis(0, 1);
+            int result = dis(gen);
+            std::cout &lt;&lt; "Condition: " &lt;&lt; result &lt;&lt; "\n";
+            return result;
+        }
+    );
+    auto taskA = taskflow.emplace([] () { std::cout &lt;&lt; "Task A\n"; });
+    auto taskB = taskflow.emplace([] () { std::cout &lt;&lt; "Task B\n"; });
+    auto finish = taskflow.emplace([] () { std::cout &lt;&lt; "Finish\n"; });
+
+    // 设置条件依赖
+    init.precede(condition);
+    condition.precede(taskA, taskB);
+    condition.succeed(taskA, taskB);
+    taskA.precede(finish);
+    taskB.precede(finish);
+
+    executor.run(taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>异步任务</h3>
+        <pre><code>tf::Executor executor;
+
+// 异步运行任务
+auto future = executor.async([] () {
+    std::cout &lt;&lt; "Async task running\n";
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    std::cout &lt;&lt; "Async task completed\n";
+    return 42;
+});
+
+// 等待结果
+int result = future.get();
+std::cout &lt;&lt; "Result: " &lt;&lt; result &lt;&lt; "\n";</code></pre>
+
+        <h3>循环任务</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor;
+
+    int counter = 0;
+
+    auto [init, cond, body, done] = taskflow.emplace(
+        [&counter] () { 
+            counter = 0;
+            std::cout &lt;&lt; "Init: counter = " &lt;&lt; counter &lt;&lt; "\n"; 
+        },
+        [&counter] () {
+            // 条件函数：返回 true 继续循环，false 退出
+            return counter &lt; 3;
+        },
+        [&counter] () {
+            counter++;
+            std::cout &lt;&lt; "Body: counter = " &lt;&lt; counter &lt;&lt; "\n";
+        },
+        [] () { 
+            std::cout &lt;&lt; "Done\n"; 
+        }
+    );
+
+    // 构建循环结构
+    init.precede(cond);
+    cond.precede(body, done);
+    body.precede(cond);
+
+    executor.run(taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>并行for循环</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;iostream&gt;
+#include &lt;vector&gt;
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor;
+
+    std::vector&lt;int&gt; data = {1, 2, 3, 4, 5, 6, 7, 8};
+
+    // 并行处理每个元素
+    taskflow.for_each(data.begin(), data.end(), [] (int i) {
+        std::cout &lt;&lt; "Processing " &lt;&lt; i 
+                  &lt;&lt; " on thread " &lt;&lt; std::this_thread::get_id() &lt;&lt; "\n";
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    });
+
+    executor.run(taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>并行reduce操作</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor;
+
+    std::vector&lt;int&gt; data = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int sum = 0;
+
+    // 并行求和
+    taskflow.reduce(data.begin(), data.end(), sum,
+        [] (int& s, int item) {
+            s += item;
+        },
+        std::plus&lt;&lt;int&gt;()  // 合并子结果
+    );
+
+    executor.run(taskflow).wait();
+
+    std::cout &lt;&lt; "Sum: " &lt;&lt; sum &lt;&lt; "\n";  // 输出: Sum: 55
+
+    return 0;
+}</code></pre>
+
+        <h2>🔧 子任务流</h2>
+
+        <h3>组合多个任务流</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    tf::Executor executor;
+
+    // 创建子任务流 1
+    tf::Taskflow taskflow1("Flow1");
+    auto [A1, B1, C1] = taskflow1.emplace(
+        [] () { std::cout &lt;&lt; "Flow1: A\n"; },
+        [] () { std::cout &lt;&lt; "Flow1: B\n"; },
+        [] () { std::cout &lt;&lt; "Flow1: C\n"; }
+    );
+    A1.precede(B1).precede(C1);
+
+    // 创建子任务流 2
+    tf::Taskflow taskflow2("Flow2");
+    auto [A2, B2, C2] = taskflow2.emplace(
+        [] () { std::cout &lt;&lt; "Flow2: A\n"; },
+        [] () { std::cout &lt;&lt; "Flow2: B\n"; },
+        [] () { std::cout &lt;&lt; "Flow2: C\n"; }
+    );
+    A2.precede(B2).precede(C2);
+
+    // 创建主任务流并组合
+    tf::Taskflow main_taskflow;
+    auto init = main_taskflow.emplace([] () { 
+        std::cout &lt;&lt; "Main: Init\n"; 
+    });
+    auto module1 = main_taskflow.composed_of(taskflow1);
+    auto module2 = main_taskflow.composed_of(taskflow2);
+    auto done = main_taskflow.emplace([] () { 
+        std::cout &lt;&lt; "Main: Done\n"; 
+    });
+
+    init.precede(module1);
+    module1.precede(module2);
+    module2.precede(done);
+
+    executor.run(main_taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>图像处理流水线</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;vector&gt;
+#include &lt;iostream&gt;
+
+struct Image {
+    int id;
+    std::string data;
+};
+
+std::vector&lt;Image&gt; load_images() {
+    std::cout &lt;&lt; "Loading images...\n";
+    return {{1, "data1"}, {2, "data2"}, {3, "data3"}};
+}
+
+void preprocess(Image& img) {
+    std::cout &lt;&lt; "Preprocessing image " &lt;&lt; img.id &lt;&lt; "\n";
+    img.data = "pre_" + img.data;
+}
+
+void process(Image& img) {
+    std::cout &lt;&lt; "Processing image " &lt;&lt; img.id &lt;&lt; "\n";
+    img.data = "proc_" + img.data;
+}
+
+void save(const Image& img) {
+    std::cout &lt;&lt; "Saving image " &lt;&lt; img.id &lt;&lt; ": " &lt;&lt; img.data &lt;&lt; "\n";
+}
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor;
+
+    // 加载图像
+    auto load = taskflow.emplace([] () {
+        return load_images();
+    }).name("load");
+
+    // 预处理（并行）
+    auto preprocess = taskflow.emplace([&] () {
+        auto images = loadImages;
+        for (auto& img : images) {
+            preprocess(img);
+        }
+    }).name("preprocess");
+
+    // 处理（并行）
+    auto process_stage = taskflow.emplace([&] () {
+        auto images = loadImages;
+        for (auto& img : images) {
+            process(img);
+        }
+    }).name("process");
+
+    // 保存（并行）
+    auto save_stage = taskflow.emplace([&] () {
+        auto images = loadImages;
+        for (const auto& img : images) {
+            save(img);
+        }
+    }).name("save");
+
+    // 设置依赖
+    load.precede(preprocess);
+    preprocess.precede(process_stage);
+    process_stage.precede(save_stage);
+
+    executor.run(taskflow).wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>数据并行计算</h3>
+        <pre><code>#include &lt;taskflow/taskflow.hpp&gt;
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;random&gt;
+#include &lt;iostream&gt;
+
+int main() {
+    tf::Taskflow taskflow;
+    tf::Executor executor;
+
+    // 生成大量数据
+    std::vector&lt;int&gt; data(1000000);
+    std::generate(data.begin(), data.end(), [] () { return rand() % 100; });
+
+    int min_val = INT_MAX;
+    int max_val = INT_MIN;
+    long long sum = 0;
+
+    // 并行查找最小值
+    taskflow.min_element(data.begin(), data.end(), min_val);
+
+    // 并行查找最大值
+    taskflow.max_element(data.begin(), data.end(), max_val);
+
+    // 并行求和
+    taskflow.reduce(data.begin(), data.end(), sum,
+        [] (long long& s, int v) { s += v; },
+        std::plus&lt;&lt;long long&gt;()
+    );
+
+    // 并行排序
+    taskflow.sort(data.begin(), data.end(), std::less&lt;int&gt;());
+
+    executor.run(taskflow).wait();
+
+    std::cout &lt;&lt; "Min: " &lt;&lt; min_val &lt;&lt; "\n";
+    std::cout &lt;&lt; "Max: " &lt;&lt; max_val &lt;&lt; "\n";
+    std::cout &lt;&lt; "Sum: " &lt;&lt; sum &lt;&lt; "\n";
+    std::cout &lt;&lt; "First 10 sorted: ";
+    for (int i = 0; i &lt; 10; i++) {
+        std::cout &lt;&lt; data[i] &lt;&lt; " ";
+    }
+    std::cout &lt;&lt; "\n";
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 常用API速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>API</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>tf::Taskflow</code></td>
+                    <td>任务流对象</td>
+                </tr>
+                <tr>
+                    <td><code>tf::Executor</code></td>
+                    <td>执行器对象，负责执行任务流</td>
+                </tr>
+                <tr>
+                    <td><code>taskflow.emplace(funcs...)</code></td>
+                    <td>创建一个或多个任务</td>
+                </tr>
+                <tr>
+                    <td><code>task.precede(tasks...)</code></td>
+                    <td>设置任务在指定任务之前执行</td>
+                </tr>
+                <tr>
+                    <td><code>task.succeed(tasks...)</code></td>
+                    <td>设置任务在指定任务之后执行</td>
+                </tr>
+                <tr>
+                    <td><code>executor.run(taskflow)</code></td>
+                    <td>执行任务流（异步）</td>
+                </tr>
+                <tr>
+                    <td><code>executor.run(taskflow).wait()</code></td>
+                    <td>执行任务流并等待完成</td>
+                </tr>
+                <tr>
+                    <td><code>executor.async(func)</code></td>
+                    <td>异步执行单个任务</td>
+                </tr>
+                <tr>
+                    <td><code>taskflow.for_each</code></td>
+                    <td>并行for循环</td>
+                </tr>
+                <tr>
+                    <td><code>taskflow.reduce</code></td>
+                    <td>并行reduce操作</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> Cpp-TaskFlow 采用 <strong>任务图</strong> 模型，任务以图结构组织，节点表示任务，边表示依赖关系。执行器根据任务图自动调度并行执行。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>确保任务间不共享可变状态，或使用互斥锁保护</li>
+                <li>任务执行顺序由依赖关系决定，不要假设执行顺序</li>
+                <li>条件任务只支持二选一的分支</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/cpp-taskflow/cpp-taskflow" target="_blank" style="color: #4cd1a8;">Cpp-TaskFlow GitHub</a></li>
+            <li><a href="https://taskflow.github.io/" target="_blank" style="color: #4cd1a8;">官方文档</a></li>
+        </ul>
+
+        <a href="../index.html" class="back-link" style="margin-top: 30px;">← 返回主页</a>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>
