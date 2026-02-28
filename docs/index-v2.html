@@ -46,50 +46,13 @@
             margin-bottom: 20px; /* 与卡片网格保持距离 */
         }
 
-        /* --- 过滤器容器 --- */
-        .filter-container {
-            width: 90%;
-            max-width: 1400px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .filter-title {
-            color: #ffffff;
-            font-size: 1.2em;
-            margin-right: 10px;
-        }
-
-        .filter-btn {
-            padding: 6px 12px;
-            margin: 0 5px;
-            background-color: rgba(76, 209, 168, 0.15);
-            color: #4cd1a8;
-            border: 1px solid rgba(100, 150, 255, 0.3);
-            border-radius: 15px; /* 圆角按钮 */
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
-        }
-
-        .filter-btn:hover {
-            background-color: rgba(76, 209, 168, 0.3);
-            color: #ffffff;
-            transform: scale(1.05);
-        }
-
-        .filter-btn.active {
-            background-color: #4cd1a8;
-            color: #0f0c29;
-            font-weight: bold;
-        }
-
         /* --- 卡片网格布局 --- */
         .library-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 25px;
             width: 100%;
+            /* flex-grow: 1; 移除，让页脚固定在底部 */
         }
 
         /* --- 单个库的卡片样式 --- */
@@ -110,10 +73,6 @@
             display: block; /* 显示当前页的卡片 */
         }
 
-        .library-card.filtered-out {
-            display: none !important; /* 过滤掉的卡片强制隐藏 */
-        }
-
         .library-card:hover {
             transform: translateY(-10px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4),
@@ -127,17 +86,6 @@
             margin-bottom: 10px;
             border-bottom: 2px solid rgba(100, 150, 255, 0.3);
             padding-bottom: 8px;
-        }
-
-        .library-lang-tag {
-            display: inline-block;
-            background-color: rgba(100, 100, 255, 0.3);
-            color: #a0a0ff;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.8em;
-            margin-bottom: 10px;
-            align-self: flex-start; /* 让标签紧贴左边 */
         }
 
         .library-description {
@@ -241,11 +189,6 @@
                 padding: 6px 12px;
                 font-size: 0.9em;
             }
-            .filter-btn {
-                padding: 4px 8px;
-                font-size: 0.8em;
-                margin: 0 2px;
-            }
         }
     </style>
 </head>
@@ -254,222 +197,180 @@
     <h1>C++ 开源库精选基地</h1>
     <p class="subtitle">汇聚高效、强大的 C++ 工具库，助力您的项目开发</p>
 
-    <!-- 过滤器 -->
-    <div class="filter-container">
-        <span class="filter-title">按语言筛选:</span>
-        <button class="filter-btn active" data-lang="all">全部</button>
-        <button class="filter-btn" data-lang="cpp">C++</button>
-        <button class="filter-btn" data-lang="go">Go</button>
-        <button class="filter-btn" data-lang="javascript">JavaScript</button>
-        <button class="filter-btn" data-lang="lua">Lua</button>
-        <button class="filter-btn" data-lang="c">C</button>
-        <button class="filter-btn" data-lang="python">Python</button>
-    </div>
-
     <div class="pagination-container">
 
         <!-- 库列表 -->
         <div class="library-grid" id="libraryGrid">
             <!-- ZeroMQ -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">ZeroMQ</h3>
                 <p class="library-description">ZeroMQ（简称 ZMQ）是一款高性能、异步、轻量级的消息传输库，并非传统意义上的消息队列 （如 RabbitMQ、Kafka）—— 它无中心 Broker（可自选实现），专注于底层消息传递机制，支持多种通信模式和传输协议，广泛用于低延迟、分布式 / 并发系统的消息通信。</p>
                 <a href="https://zeromq.org/" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- cppzmq -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">cppzmq</h3>
                 <p class="library-description">cppzmq 是 ZeroMQ 的 C++ 绑定库，是一个轻量级的、仅包含头文件的绑定，提供了一套现代 C++ 接口，用于在 C++ 应用程序中使用 ZeroMQ。</p>
                 <a href="https://github.com/zeromq/cppzmq" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- gRPC -->
-            <div class="library-card" data-langs="cpp go">
-                <span class="library-lang-tag">C++</span>
-                <span class="library-lang-tag">Go</span>
+            <div class="library-card">
                 <h3 class="library-name">gRPC</h3>
                 <p class="library-description">gRPC 是一个高性能、开源的通用 RPC 框架，基于 HTTP/2 协议，支持多种语言，适用于构建分布式系统和微服务架构。</p>
                 <a href="https://grpc.io/" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- Cpp-TaskFlow -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">Cpp-TaskFlow</h3>
                 <p class="library-description">Cpp-TaskFlow 是一个现代 C++ 并发编程库，用于简化并行任务的定义和执行，支持任务依赖、并行执行和异步任务管理。</p>
                 <a href="https://github.com/cpp-taskflow/cpp-taskflow" target="_blank" class="library-url">了解更多</a>
             </div>
             
             <!-- redis-plus-plus -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">redis-plus-plus</h3>
                 <p class="library-description">redis-plus-plus 是一个现代 C++ 客户端库，用于连接和操作 Redis 数据库，提供了类型安全、异步和同步的 API，简化了 Redis 操作。</p>
                 <a href="https://github.com/sewenew/redis-plus-plus" target="_blank" class="library-url">了解更多</a>
             </div>
             
             <!-- ixwebsocket -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">ixwebsocket</h3>
                 <p class="library-description">ixwebsocket 是一个现代 C++ WebSocket 客户端和服务器库, 支持异步通信、TLS 加密和多线程处理，适用于构建实时通信应用。</p>
                 <a href="https://github.com/machinekoder/ixwebsocket" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- leveldb -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">leveldb</h3>
                 <p class="library-description">leveldb 是 Google 开发的一个高性能、轻量级的嵌入式键值存储库，适用于需要快速读写操作的场景。</p>
                 <a href="https://github.com/google/leveldb" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- matplotplusplus -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">matplotplusplus</h3>
                 <p class="library-description">matplotplusplus 是一个现代 C++ 图形库，用于创建高质量的 2D 和 3D 图表，支持多种图形格式输出。</p>
                 <a href="https://github.com/alandefreitas/matplotplusplus" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- AOM -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">AOM (Active Object Model)</h3>
                 <p class="library-description">一个仅头文件的现代 C++ 库，旨在通过“代理、调度器、Future”模式，将复杂的并发编程转化为简单的消息传递，提升线程安全性和代码可维护性。</p>
                 <a href="https://samiralavi.github.io/activecpp/main/" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- SObjectizer -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">SObjectizer</h3>
                 <p class="library-description">一个成熟的 C++ 框架，实现了 Actor、发布/订阅和 CSP 模型，用于简化并发和多线程应用程序的开发，性能稳定，已在生产环境验证。</p>
                 <a href="https://github.com/Stiffstream/sobjectizer" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- sol2 -->
-            <div class="library-card" data-langs="cpp lua">
-                <span class="library-lang-tag">C++</span>
-                <span class="library-lang-tag">Lua</span>
+            <div class="library-card">
                 <h3 class="library-name">sol2</h3>
                 <p class="library-description">一个现代、轻量、高性能的 C++17/20 头文件库，用于在 C++ 和 Lua 之间进行无缝交互，提供类型安全、高性能的绑定方案。</p>
                 <a href="https://github.com/ThePhD/sol2" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- quickjs-ng -->
-            <div class="library-card" data-langs="javascript c">
-                <span class="library-lang-tag">JavaScript</span>
-                <span class="library-lang-tag">C</span>
+            <div class="library-card">
                 <h3 class="library-name">quickjs-ng</h3>
                 <p class="library-description">一个超轻量级且功能强大的 JavaScript 引擎，适用于嵌入式系统或需要脚本能力的 C++ 应用程序。</p>
                 <a href="https://github.com/quickjs-ng/quickjs" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- nlohmann/json -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">nlohmann/json</h3>
                 <p class="library-description">一个非常流行的 C++ JSON 库，以直观的语法和高性能著称，使在 C++ 中处理 JSON 数据变得极其简单。</p>
                 <a href="https://github.com/nlohmann/json" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- json11 -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">json11</h3>
                 <p class="library-description">一个轻量级的 C++ JSON 解析库，提供简单易用的 API 和高性能的 JSON 解析能力。</p>
                 <a href="https://github.com/dropbox/json11" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- SQLiteCpp -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">SQLiteCpp</h3>
                 <p class="library-description">一个优雅的 C++ 封装库，用于简化对 SQLite 数据库的操作，提供 RAII 和异常安全的接口。</p>
                 <a href="https://github.com/SRombauts/SQLiteCpp" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- cpp-httplib -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">cpp-httplib</h3>
                 <p class="library-description">一个简单易用的跨平台 C++ HTTP/HTTPS 库，仅需一个头文件即可快速搭建服务器或发起客户端请求。</p>
                 <a href="https://github.com/yhirose/cpp-httplib" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- concurrentqueue -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">concurrentqueue</h3>
                 <p class="library-description">一个高性能的无锁并发队列库，专为多线程环境下的数据交换而设计，性能卓越。</p>
                 <a href="https://github.com/cameron314/concurrentqueue" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- args -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">args</h3>
                 <p class="library-description">一个功能强大且易于使用的 C++ 命令行参数解析库，帮助开发者轻松处理 CLI 输入。</p>
                 <a href="https://github.com/Taywee/args" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- tacopie -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">tacopie</h3>
                 <p class="library-description">一个轻量级的 C++ 网络库，为上层应用（如 Redis 客户端）提供底层的 TCP 连接和异步 I/O 支持。</p>
                 <a href="https://github.com/Cylix/tacopie" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- mosquitto (MQTT) -->
-            <div class="library-card" data-langs="cpp c">
-                <span class="library-lang-tag">C++</span>
-                <span class="library-lang-tag">C</span>
+            <div class="library-card">
                 <h3 class="library-name">Eclipse Mosquitto (MQTT)</h3>
                 <p class="library-description">一个开源的 MQTT 消息代理 (Broker) 及其 C/C++ 客户端库，广泛应用于物联网 (IoT) 和低带宽、不可靠网络环境下的消息传递。</p>
                 <a href="https://github.com/eclipse/mosquitto" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- folly -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">Folly</h3>
                 <p class="library-description">由 Facebook (现 Meta) 开发的一系列 C++ 库集合，包含了许多高性能的容器、算法和实用工具，在大型系统中应用广泛。</p>
                 <a href="https://github.com/facebook/folly" target="_blank" class="library-url">了解更多</a>
             </div>
             
             <!-- cpr -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">cpr</h3>
                 <p class="library-description">一个现代、易用的 C++ HTTP 库，基于 libcurl 构建，提供简洁的 API 和良好的跨平台支持。</p>
                 <a href="https://github.com/cpr/cpr" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- libmodbus -->
-            <div class="library-card" data-langs="cpp c">
-                <span class="library-lang-tag">C++</span>
-                <span class="library-lang-tag">C</span>
+            <div class="library-card">
                 <h3 class="library-name">libmodbus</h3>
                 <p class="library-description">一个高效的 C++ 库，用于处理 Modbus 协议，提供模块化的网络组件和工具。</p>
                 <a href="https://github.com/stephane/libmodbus" target="_blank" class="library-url">了解更多</a>
             </div>
 
             <!-- open62541 -->
-            <div class="library-card" data-langs="c">
-                <span class="library-lang-tag">C</span>
+            <div class="library-card">
                 <h3 class="library-name">open62541</h3>
                 <p class="library-description">一个用于实现 OPC UA 协议的开源 C 库，提供工业自动化和物联网应用的支持。</p>
                 <a href="https://github.com/open62541/open62541" target="_blank" class="library-url">了解更多</a>
             </div>
 
              <!-- spdlog -->
-            <div class="library-card" data-langs="cpp">
-                <span class="library-lang-tag">C++</span>
+            <div class="library-card">
                 <h3 class="library-name">spdlog</h3>
                 <p class="library-description">一个快速、功能丰富的 C++ 日志库，支持多线程、异步日志记录和多种输出格式。</p>
                 <a href="https://github.com/gabime/spdlog" target="_blank" class="library-url">了解更多</a>
@@ -492,32 +393,18 @@
         document.addEventListener('DOMContentLoaded', function () {
             const cards = document.querySelectorAll('.library-card');
             const paginationNav = document.getElementById('paginationNav');
-            const filterButtons = document.querySelectorAll('.filter-btn');
-            const itemsPerPage = 6; 
+            const itemsPerPage = 6; // 每页显示的卡片数量
             let currentPage = 1;
-            let currentFilter = 'all'; // 当前激活的筛选条件
             const totalPages = Math.ceil(cards.length / itemsPerPage);
 
             // 初始化显示第一页
-            applyFiltersAndShowPage();
-
-            // 筛选按钮点击事件
-            filterButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    // 更新激活状态
-                    filterButtons.forEach(btn => btn.classList.remove('active'));
-                    button.classList.add('active');
-                    
-                    currentFilter = button.getAttribute('data-lang');
-                    currentPage = 1; // 切换筛选条件时回到第一页
-                    applyFiltersAndShowPage();
-                });
-            });
+            showPage(currentPage);
 
             // 创建分页按钮
             function createPaginationButtons() {
-                paginationNav.innerHTML = ''; 
+                paginationNav.innerHTML = ''; // 清空现有按钮
 
+                // 上一页按钮
                 const prevButton = document.createElement('button');
                 prevButton.className = 'page-btn';
                 prevButton.textContent = '上一页';
@@ -527,14 +414,18 @@
                 prevButton.onclick = () => goToPage(currentPage - 1);
                 paginationNav.appendChild(prevButton);
 
+                // 页码按钮
+                // 为了处理很多页的情况，这里只显示前后几页和当前页附近的页码
                 const maxVisiblePages = 5;
                 let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
                 let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
                 
+                // 如果右边空间不足，调整左边起始页
                 if (endPage - startPage + 1 < maxVisiblePages) {
                     startPage = Math.max(1, endPage - maxVisiblePages + 1);
                 }
 
+                // 如果不是第一页，显示省略号
                 if (startPage > 1) {
                     const firstButton = document.createElement('span');
                     firstButton.className = 'page-btn';
@@ -547,13 +438,14 @@
                     const button = document.createElement('button');
                     button.className = 'page-btn';
                     if (i === currentPage) {
-                        button.classList.add('active');
+                        button.classList.add('active'); // 当前页按钮样式
                     }
                     button.textContent = i;
                     button.onclick = () => goToPage(i);
                     paginationNav.appendChild(button);
                 }
 
+                // 如果不是最后一页，显示省略号
                 if (endPage < totalPages) {
                     const lastButton = document.createElement('span');
                     lastButton.className = 'page-btn';
@@ -562,6 +454,8 @@
                     paginationNav.appendChild(lastButton);
                 }
 
+
+                // 下一页按钮
                 const nextButton = document.createElement('button');
                 nextButton.className = 'page-btn';
                 nextButton.textContent = '下一页';
@@ -572,31 +466,12 @@
                 paginationNav.appendChild(nextButton);
             }
 
-            // 应用筛选条件并显示当前页
-            function applyFiltersAndShowPage() {
-                // 先根据筛选条件隐藏/显示卡片
-                cards.forEach(card => {
-                    const langs = card.getAttribute('data-langs').split(' ');
-                    if (currentFilter === 'all' || langs.includes(currentFilter)) {
-                        card.classList.remove('filtered-out');
-                    } else {
-                        card.classList.add('filtered-out');
-                    }
-                });
+            // 显示指定页的卡片
+            function showPage(pageNumber) {
+                const startIndex = (pageNumber - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
 
-                // 计算筛选后的可见卡片
-                const visibleCards = Array.from(cards).filter(card => !card.classList.contains('filtered-out'));
-                const filteredTotalPages = Math.ceil(visibleCards.length / itemsPerPage);
-
-                // 计算当前页码（防止筛选后页码超出范围）
-                if (currentPage > filteredTotalPages && filteredTotalPages > 0) {
-                    currentPage = filteredTotalPages;
-                }
-
-                // 再次根据当前页码显示卡片
-                visibleCards.forEach((card, index) => {
-                    const startIndex = (currentPage - 1) * itemsPerPage;
-                    const endIndex = startIndex + itemsPerPage;
+                cards.forEach((card, index) => {
                     if (index >= startIndex && index < endIndex) {
                         card.classList.add('visible');
                     } else {
@@ -604,37 +479,20 @@
                     }
                 });
 
-                 // 如果没有匹配项，显示提示
-                 if (visibleCards.length === 0) {
-                    const noResultsCard = document.createElement('div');
-                    noResultsCard.className = 'library-card visible';
-                    noResultsCard.style.gridColumn = '1 / -1'; // 横跨所有列
-                    noResultsCard.innerHTML = '<h3 style="text-align: center;">未找到符合条件的库</h3>';
-                    document.getElementById('libraryGrid').appendChild(noResultsCard);
-                } else {
-                    // 确保之前可能添加的无结果卡片被移除
-                    const existingNoResultsCard = document.querySelector('#libraryGrid .library-card.no-results');
-                    if (existingNoResultsCard) {
-                        existingNoResultsCard.remove();
-                    }
-                }
-
-                createPaginationButtons(); // 更新分页按钮
+                currentPage = pageNumber;
+                createPaginationButtons(); // 更新按钮状态
             }
-
 
             // 跳转到指定页
             function goToPage(pageNumber) {
-                const visibleCards = Array.from(cards).filter(card => !card.classList.contains('filtered-out'));
-                const filteredTotalPages = Math.ceil(visibleCards.length / itemsPerPage);
-                
-                if (pageNumber < 1 || pageNumber > filteredTotalPages || pageNumber === currentPage) {
-                    return;
+                if (pageNumber < 1 || pageNumber > totalPages || pageNumber === currentPage) {
+                    return; // 防止无效跳转或重复点击
                 }
-                currentPage = pageNumber;
-                applyFiltersAndShowPage();
+                showPage(pageNumber);
             }
 
+            // 初始化按钮
+            createPaginationButtons();
         });
     </script>
 </body>
