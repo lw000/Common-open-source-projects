@@ -62,20 +62,27 @@
         }
 
         .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
+            position: fixed;
+            right: 30px;
+            top: 30px;
+            z-index: 1000;
             color: #4cd1a8;
             text-decoration: none;
             font-weight: bold;
-            padding: 10px 20px;
-            background-color: rgba(76, 209, 168, 0.1);
-            border-radius: 5px;
+            padding: 12px 24px;
+            background-color: rgba(76, 209, 168, 0.15);
+            border: 2px solid rgba(76, 209, 168, 0.3);
+            border-radius: 25px;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
 
         .back-link:hover {
-            background-color: rgba(76, 209, 168, 0.2);
-            box-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            background-color: rgba(76, 209, 168, 0.25);
+            border-color: rgba(76, 209, 168, 0.5);
+            box-shadow: 0 6px 20px rgba(76, 209, 168, 0.4);
+            transform: translateY(-2px);
         }
 
         .warning {
