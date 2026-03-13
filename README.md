@@ -18,7 +18,7 @@ Common-open-source-projects/
 └── docs/
     ├── index.html              # 主页（库列表展示）
     ├── examples/               # 示例代码页面
-    │   ├── ZeroMQ.html         # ZeroMQ 使用指南
+    │   ├── zeromq.html         # ZeroMQ 基础使用指南
     │   ├── cppzmq.html         # cppzmq 使用指南
     │   ├── grpc.html           # gRPC 使用指南
     │   ├── cpp-taskflow.html   # Cpp-TaskFlow 使用指南
@@ -36,7 +36,9 @@ Common-open-source-projects/
     │   ├── spdlog.html         # spdlog 使用指南
     │   ├── args.html           # args 使用指南
     │   ├── tacopie.html        # tacopie 使用指南
-    │   └── zeromq.html         # ZeroMQ 基础使用指南
+    │   ├── coost.html          # coost 使用指南
+    │   ├── libdataframe.html   # LibDataFrame 使用指南
+    │   └── casablanca.html     # C++ REST SDK (Casablanca) 使用指南
     ├── AOM.md                  # Active Object Model 说明
     ├── sobjectizer.md          # SObjectizer 详细说明
     ├── sol2.md                 # sol2 详细说明
@@ -57,6 +59,7 @@ Common-open-source-projects/
 - **Eclipse Mosquitto** - MQTT 消息代理
 - **libmodbus** - Modbus 协议库
 - **open62541** - OPC UA 协议库
+- **C++ REST SDK (Casablanca)** - 微软开发的跨平台 RESTful 服务库
 
 ### ⚡ 并发与多线程
 - **Cpp-TaskFlow** - 现代 C++ 并发编程库
@@ -71,6 +74,7 @@ Common-open-source-projects/
 - **hiredis** - 轻量级 C 语言 Redis 客户端
 - **leveldb** - 嵌入式键值存储库
 - **SQLiteCpp** - SQLite 的 C++ 封装库
+- **LibDataFrame** - 极度模仿 pandas 的 C++ 数据分析库
 
 ### 📝 日志系统
 - **spdlog** - 快速、功能丰富的 C++ 日志库

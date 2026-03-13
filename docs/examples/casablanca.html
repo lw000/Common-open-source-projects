@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C++ REST SDK (Casablanca) 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            position: fixed;
+            right: 30px;
+            top: 30px;
+            z-index: 1000;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px 24px;
+            background-color: rgba(76, 209, 168, 0.15);
+            border: 2px solid rgba(76, 209, 168, 0.3);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.25);
+            border-color: rgba(76, 209, 168, 0.5);
+            box-shadow: 0 6px 20px rgba(76, 209, 168, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>C++ REST SDK (Casablanca) 使用指南</h1>
+
+        <p>C++ REST SDK (代号 Casablanca) 是微软开发的一个跨平台 C++ 库，用于构建现代的、连接云服务的 C++ 应用程序。它提供了 HTTP 客户端/服务器、JSON 处理、WebSocket 支持、异步任务等功能，适合构建 RESTful 服务和客户端。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>Ubuntu/Debian</h3>
+        <pre><code># 安装依赖
+sudo apt-get install libboost-all-dev libssl-dev
+
+# 从源码编译
+git clone https://github.com/microsoft/cpprestsdk.git
+cd cpprestsdk
+mkdir build && cd build
+cmake ..
+cmake --build .
+sudo make install</code></pre>
+
+        <h3>macOS (使用 Homebrew)</h3>
+        <pre><code>brew install cpprestsdk</code></pre>
+
+        <h3>Windows (vcpkg)</h3>
+        <pre><code>vcpkg install cpprestsdk:x64-windows</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>HTTP GET 请求</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;cpprest/filestream.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    // 创建 HTTP 客户端
+    http_client client(U("https://api.github.com"));
+
+    // 发送 GET 请求
+    client.request(methods::GET, U("/users/microsoft"))
+    .then([](http_response response) {
+        // 检查状态码
+        if (response.status_code() == status_codes::OK) {
+            // 读取响应体
+            return response.extract_json();
+        }
+        return pplx::task_from_result(json::value());
+    })
+    .then([](json::value jsonValue) {
+        // 解析 JSON
+        if (!jsonValue.is_null()) {
+            utility::string_t login = jsonValue.at(U("login")).as_string();
+            std::wcout &lt;&lt; L"Login: " &lt;&lt; login &lt;&lt; std::endl;
+            
+            utility::string_t html_url = jsonValue.at(U("html_url")).as_string();
+            std::wcout &lt;&lt; L"URL: " &lt;&lt; html_url &lt;&lt; std::endl;
+        }
+    })
+    .wait(); // 等待异步操作完成
+
+    return 0;
+}</code></pre>
+
+        <h3>HTTP POST 请求</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    http_client client(U("https://httpbin.org/post"));
+
+    // 创建 JSON 请求体
+    json::value postData;
+    postData[U("name")] = json::value::string(U("Alice"));
+    postData[U("age")] = json::value::number(25);
+    postData[U("active")] = json::value::boolean(true);
+
+    // 发送 POST 请求
+    client.request(methods::POST, U(""), postData.to_string())
+    .then([](http_response response) {
+        if (response.status_code() == status_codes::OK) {
+            return response.extract_json();
+        }
+        return pplx::task_from_result(json::value());
+    })
+    .then([](json::value responseJson) {
+        // 打印响应
+        if (!responseJson.is_null()) {
+            std::wcout &lt;&lt; responseJson.serialize() &lt;&lt; std::endl;
+        }
+    })
+    .wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>HTTP PUT 请求</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    http_client client(U("https://jsonplaceholder.typicode.com/posts/1"));
+
+    // 创建更新数据
+    json::value updateData;
+    updateData[U("title")] = json::value::string(U("Updated Title"));
+    updateData[U("body")] = json::value::string(U("Updated body content"));
+
+    // 发送 PUT 请求
+    client.request(methods::PUT, U(""), updateData.to_string())
+    .then([](http_response response) {
+        if (response.status_code() == status_codes::OK) {
+            return response.extract_json();
+        }
+        return pplx::task_from_result(json::value());
+    })
+    .then([](json::value responseJson) {
+        std::wcout &lt;&lt; L"Updated: " &lt;&lt; responseJson.serialize() &lt;&lt; std::endl;
+    })
+    .wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>HTTP DELETE 请求</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    http_client client(U("https://jsonplaceholder.typicode.com/posts/1"));
+
+    // 发送 DELETE 请求
+    client.request(methods::DEL)
+    .then([](http_response response) {
+        std::wcout &lt;&lt; L"Status Code: " &lt;&lt; response.status_code() &lt;&lt; std::endl;
+        return response.extract_string();
+    })
+    .then([](utility::string_t responseText) {
+        std::wcout &lt;&lt; L"Response: " &lt;&lt; responseText &lt;&lt; std::endl;
+    })
+    .wait();
+
+    return 0;
+}</code></pre>
+
+        <h2>🔧 JSON 处理</h2>
+
+        <h3>创建和解析 JSON</h3>
+        <pre><code>#include &lt;cpprest/json.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::json;
+
+int main() {
+    // 创建 JSON 对象
+    json::value user;
+    user[U("id")] = json::value::number(1);
+    user[U("name")] = json::value::string(U("Alice"));
+    user[U("active")] = json::value::boolean(true);
+    
+    // 创建 JSON 数组
+    json::value hobbies = json::value::array();
+    hobbies[0] = json::value::string(U("reading"));
+    hobbies[1] = json::value::string(U("coding"));
+    hobbies[2] = json::value::string(U("gaming"));
+    user[U("hobbies")] = hobbies;
+
+    // 序列化为字符串
+    utility::string_t jsonStr = user.serialize();
+    std::wcout &lt;&lt; L"JSON: " &lt;&lt; jsonStr &lt;&lt; std::endl;
+
+    // 解析 JSON 字符串
+    json::value parsed = json::value::parse(jsonStr);
+    
+    // 访问字段
+    utility::string_t name = parsed.at(U("name")).as_string();
+    int id = parsed.at(U("id")).as_integer();
+    bool active = parsed.at(U("active")).as_bool();
+    
+    std::wcout &lt;&lt; L"Name: " &lt;&lt; name &lt;&lt; std::endl;
+    std::wcout &lt;&lt; L"ID: " &lt;&lt; id &lt;&lt; std::endl;
+    std::wcout &lt;&lt; L"Active: " &lt;&lt; (active ? L"Yes" : L"No") &lt;&lt; std::endl;
+
+    // 遍历数组
+    if (parsed.has_field(U("hobbies")) &amp;&amp; parsed.at(U("hobbies")).is_array()) {
+        json::array hobbiesArray = parsed.at(U("hobbies")).as_array();
+        std::wcout &lt;&lt; L"Hobbies:" &lt;&lt; std::endl;
+        for (const auto&amp; hobby : hobbiesArray) {
+            std::wcout &lt;&lt; L"  - " &lt;&lt; hobby.as_string() &lt;&lt; std::endl;
+        }
+    }
+
+    return 0;
+}</code></pre>
+
+        <h3>嵌套 JSON 处理</h3>
+        <pre><code>#include &lt;cpprest/json.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::json;
+
+int main() {
+    // 创建嵌套 JSON
+    json::value company;
+    company[U("name")] = json::value::string(U("TechCorp"));
+    
+    // 嵌套地址对象
+    json::value address;
+    address[U("street")] = json::value::string(U("123 Tech Street"));
+    address[U("city")] = json::value::string(U("San Francisco"));
+    address[U("zip")] = json::value::string(U("94102"));
+    company[U("address")] = address;
+    
+    // 嵌套员工数组
+    json::value employees = json::value::array();
+    
+    json::value emp1;
+    emp1[U("id")] = json::value::number(1);
+    emp1[U("name")] = json::value::string(U("Alice"));
+    employees[0] = emp1;
+    
+    json::value emp2;
+    emp2[U("id")] = json::value::number(2);
+    emp2[U("name")] = json::value::string(U("Bob"));
+    employees[1] = emp2;
+    
+    company[U("employees")] = employees;
+
+    std::wcout &lt;&lt; company.serialize() &lt;&lt; std::endl;
+
+    // 访问嵌套字段
+    utility::string_t city = company.at(U("address")).at(U("city")).as_string();
+    std::wcout &lt;&lt; L"City: " &lt;&lt; city &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>🌐 HTTP 服务器</h2>
+
+        <h3>创建简单的 REST 服务器</h3>
+        <pre><code>#include &lt;cpprest/http_listener.h&gt;
+#include &lt;cpprest/json.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::experimental::listener;
+
+void handle_get(http_request request) {
+    // 构造 JSON 响应
+    json::value response;
+    response[U("message")] = json::value::string(U("Hello, World!"));
+    response[U("status")] = json::value::string(U("success"));
+
+    // 发送响应
+    request.reply(status_codes::OK, response);
+}
+
+void handle_post(http_request request) {
+    // 读取请求体
+    request.extract_json()
+    .then([request](pplx::task&lt;json::value&gt; task) {
+        try {
+            json::value jsonData = task.get();
+            
+            // 处理数据
+            utility::string_t name = jsonData.at(U("name")).as_string();
+            
+            // 构造响应
+            json::value response;
+            response[U("greeting")] = json::value::string(
+                U("Hello, ") + name + U("!")
+            );
+            response[U("status")] = json::value::string(U("success"));
+            
+            request.reply(status_codes::OK, response);
+        } catch (const std::exception&amp; e) {
+            json::value error;
+            error[U("error")] = json::value::string(U("Invalid JSON"));
+            request.reply(status_codes::BadRequest, error);
+        }
+    }).wait();
+}
+
+int main() {
+    // 创建 HTTP 监听器
+    http_listener listener(U("http://localhost:8080/api"));
+
+    // 注册路由
+    listener.support(methods::GET, handle_get);
+    listener.support(methods::POST, handle_post);
+
+    try {
+        // 启动监听
+        listener.open().wait();
+        std::wcout &lt;&lt; L"Server running at http://localhost:8080/api" &lt;&lt; std::endl;
+        std::wcout &lt;&lt; L"Press Enter to exit..." &lt;&lt; std::endl;
+        std::cin.get();
+        
+        // 停止监听
+        listener.close().wait();
+    } catch (const std::exception&amp; e) {
+        std::cerr &lt;&lt; "Error: " &lt;&lt; e.what() &lt;&lt; std::endl;
+    }
+
+    return 0;
+}</code></pre>
+
+        <h2>🔌 WebSocket</h2>
+
+        <h3>WebSocket 客户端</h3>
+        <pre><code>#include &lt;cpprest/ws_client.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::websockets;
+using namespace web::websockets::client;
+
+int main() {
+    // 创建 WebSocket 客户端
+    websocket_callback_client client;
+
+    // 配置消息接收回调
+    client.set_message_handler([](const websocket_incoming_message&amp; msg) {
+        utility::string_t message = msg.extract_string().get();
+        std::wcout &lt;&lt; L"Received: " &lt;&lt; message &lt;&lt; std::endl;
+    });
+
+    // 连接到服务器
+    client.connect(U("ws://echo.websocket.org")).wait();
+    std::wcout &lt;&lt; L"Connected to WebSocket server" &lt;&lt; std::endl;
+
+    // 发送消息
+    websocket_outgoing_message msg;
+    msg.set_utf8_message("Hello from C++ REST SDK!");
+    client.send(msg).wait();
+    std::wcout &lt;&lt; L"Message sent" &lt;&lt; std::endl;
+
+    // 等待一会儿接收响应
+    std::this_thread::sleep_for(std::chrono::seconds(2));
+
+    // 关闭连接
+    client.close().wait();
+    std::wcout &lt;&lt; L"Connection closed" &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>🔍 高级功能</h2>
+
+        <h3>设置请求头</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    http_client client(U("https://httpbin.org/headers"));
+
+    // 创建请求
+    http_request request(methods::GET);
+    
+    // 设置自定义请求头
+    request.headers().add(U("User-Agent"), U("C++ REST SDK Client"));
+    request.headers().add(U("Accept"), U("application/json"));
+    request.headers().add(U("X-Custom-Header"), U("CustomValue"));
+
+    // 添加认证头
+    utility::string_t auth = U("Bearer ") + U("your-token-here");
+    request.headers().add(U("Authorization"), auth);
+
+    // 发送请求
+    client.request(request)
+    .then([](http_response response) {
+        return response.extract_json();
+    })
+    .then([](json::value jsonValue) {
+        std::wcout &lt;&lt; jsonValue.serialize() &lt;&lt; std::endl;
+    })
+    .wait();
+
+    return 0;
+}</code></pre>
+
+        <h3>文件上传</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;cpprest/filestream.h&gt;
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    http_client client(U("https://httpbin.org/post"));
+
+    // 创建文件流
+    concurrency::streams::fstream fileStream = 
+        concurrency::streams::fstream::open_istream(
+            U("example.txt"),
+            std::ios::in
+        ).get();
+
+    // 创建多部分表单数据
+    http_request request(methods::POST);
+    
+    // 设置请求体为文件内容
+    request.set_body(fileStream);
+    request.headers().set_content_type(U("text/plain"));
+
+    // 发送请求
+    client.request(request)
+    .then([](http_response response) {
+        std::wcout &lt;&lt; L"Status: " &lt;&lt; response.status_code() &lt;&lt; std::endl;
+        return response.extract_string();
+    })
+    .then([](utility::string_t responseText) {
+        std::wcout &lt;&lt; L"Response: " &lt;&lt; responseText &lt;&lt; std::endl;
+    })
+    .wait();
+
+    fileStream.close().wait();
+    return 0;
+}</code></pre>
+
+        <h3>异步请求链</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;iostream&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+int main() {
+    http_client client(U("https://jsonplaceholder.typicode.com"));
+
+    // 链式异步请求
+    client.request(methods::GET, U("/users/1"))
+    .then([](http_response response) {
+        return response.extract_json();
+    })
+    .then([&amp;client](json::value userJson) {
+        // 获取第一个用户的 ID
+        utility::string_t userId = userJson.at(U("id")).as_string();
+        
+        // 使用第一个用户的 ID 获取该用户的帖子
+        utility::string_t postsPath = U("/posts?userId=") + userId;
+        return client.request(methods::GET, postsPath);
+    })
+    .then([](http_response response) {
+        return response.extract_json();
+    })
+    .then([](json::value postsJson) {
+        // 打印所有帖子的标题
+        if (postsJson.is_array()) {
+            for (const auto&amp; post : postsJson.as_array()) {
+                utility::string_t title = post.at(U("title")).as_string();
+                std::wcout &lt;&lt; L"Title: " &lt;&lt; title &lt;&lt; std::endl;
+            }
+        }
+    })
+    .wait();
+
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>REST API 客户端封装</h3>
+        <pre><code>#include &lt;cpprest/http_client.h&gt;
+#include &lt;cpprest/json.h&gt;
+#include &lt;string&gt;
+#include &lt;memory&gt;
+
+using namespace web;
+using namespace web::http;
+using namespace web::http::client;
+
+class ApiClient {
+private:
+    http_client client_;
+    utility::string_t base_url_;
+
+public:
+    ApiClient(const utility::string_t&amp; baseUrl) 
+        : client_(baseUrl), base_url_(baseUrl) {}
+
+    // GET 请求
+    pplx::task&lt;json::value&gt; get(const utility::string_t&amp; path) {
+        return client_.request(methods::GET, path)
+        .then([](http_response response) {
+            if (response.status_code() != status_codes::OK) {
+                throw std::runtime_error("HTTP Error");
+            }
+            return response.extract_json();
+        });
+    }
+
+    // POST 请求
+    pplx::task&lt;json::value&gt; post(
+        const utility::string_t&amp; path,
+        const json::value&amp; data) {
+        return client_.request(methods::POST, path, data)
+        .then([](http_response response) {
+            if (response.status_code() != status_codes::OK &amp;&amp;
+                response.status_code() != status_codes::Created) {
+                throw std::runtime_error("HTTP Error");
+            }
+            return response.extract_json();
+        });
+    }
+
+    // PUT 请求
+    pplx::task&lt;json::value&gt; put(
+        const utility::string_t&amp; path,
+        const json::value&amp; data) {
+        return client_.request(methods::PUT, path, data)
+        .then([](http_response response) {
+            if (response.status_code() != status_codes::OK) {
+                throw std::runtime_error("HTTP Error");
+            }
+            return response.extract_json();
+        });
+    }
+
+    // DELETE 请求
+    pplx::task&lt;bool&gt; del(const utility::string_t&amp; path) {
+        return client_.request(methods::DEL, path)
+        .then([](http_response response) {
+            return response.status_code() == status_codes::OK;
+        });
+    }
+};
+
+int main() {
+    ApiClient api(U("https://jsonplaceholder.typicode.com"));
+
+    // 获取用户
+    api.get(U("/users/1"))
+    .then([](json::value user) {
+        std::wcout &lt;&lt; L"User: " &lt;&lt; user.serialize() &lt;&lt; std::endl;
+    }).wait();
+
+    // 创建新帖子
+    json::value newPost;
+    newPost[U("title")] = json::value::string(U("My Post"));
+    newPost[U("body")] = json::value::string(U("Post body"));
+    newPost[U("userId")] = json::value::number(1);
+
+    api.post(U("/posts"), newPost)
+    .then([](json::value createdPost) {
+        std::wcout &lt;&lt; L"Created: " &lt;&lt; createdPost.serialize() &lt;&lt; std::endl;
+    }).wait();
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 常用类和方法速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>类别</th>
+                    <th>类/方法</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="4">HTTP 客户端</td>
+                    <td><code>http_client</code></td>
+                    <td>HTTP 客户端类</td>
+                </tr>
+                <tr>
+                    <td><code>request()</code></td>
+                    <td>发送 HTTP 请求</td>
+                </tr>
+                <tr>
+                    <td><code>http_response</code></td>
+                    <td>HTTP 响应类</td>
+                </tr>
+                <tr>
+                    <td><code>extract_json()</code></td>
+                    <td>提取 JSON 响应</td>
+                </tr>
+                <tr>
+                    <td rowspan="4">JSON 处理</td>
+                    <td><code>json::value</code></td>
+                    <td>JSON 值类</td>
+                </tr>
+                <tr>
+                    <td><code>parse()</code></td>
+                    <td>解析 JSON 字符串</td>
+                </tr>
+                <tr>
+                    <td><code>serialize()</code></td>
+                    <td>序列化为字符串</td>
+                </tr>
+                <tr>
+                    <td><code>json::array()</code></td>
+                    <td>创建 JSON 数组</td>
+                </tr>
+                <tr>
+                    <td rowspan="3">HTTP 方法</td>
+                    <td><code>methods::GET</code></td>
+                    <td>GET 请求</td>
+                </tr>
+                <tr>
+                    <td><code>methods::POST</code></td>
+                    <td>POST 请求</td>
+                </tr>
+                <tr>
+                    <td><code>methods::PUT/DEL</code></td>
+                    <td>PUT/DELETE 请求</td>
+                </tr>
+                <tr>
+                    <td rowspan="2">WebSocket</td>
+                    <td><code>websocket_client</code></td>
+                    <td>WebSocket 客户端</td>
+                </tr>
+                <tr>
+                    <td><code>websocket_listener</code></td>
+                    <td>WebSocket 服务端</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> C++ REST SDK 使用 PPL (Parallel Patterns Library) 处理异步操作，<code>.then()</code> 方法用于链式处理异步结果。记得在主程序最后调用 <code>.wait()</code> 来等待异步操作完成。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>需要 C++14 或更高版本支持</li>
+                <li>异步操作需要正确处理异常</li>
+                <li>跨平台编译时注意链接相应的库</li>
+                <li>字符串类型为 <code>utility::string_t</code>，支持跨平台（Windows 下为 std::wstring）</li>
+                <li>Windows 下需要链接 WinHTTP，Linux 下需要链接 Boost.Asio</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/microsoft/cpprestsdk" target="_blank" style="color: #4cd1a8;">C++ REST SDK GitHub</a></li>
+            <li><a href="https://microsoft.github.io/cpprestsdk/" target="_blank" style="color: #4cd1a8;">官方文档</a></li>
+            <li><a href="https://github.com/microsoft/cpprestsdk/tree/master/Release/samples" target="_blank" style="color: #4cd1a8;">示例代码</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a> 或 <a href="mailto:liweixs@gmail.com" class="contact-link">liweixs@gmail.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>

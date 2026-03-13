@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LibDataFrame 使用指南</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0c29;
+            background-image: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0ff;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(20, 20, 40, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(100, 150, 255, 0.3);
+        }
+
+        h1 {
+            color: #4cd1a8;
+            text-shadow: 0 0 10px rgba(76, 209, 168, 0.5);
+            border-bottom: 3px solid #4cd1a8;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        h2 {
+            color: #ff9f7f;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #a0a0ff;
+            margin-top: 30px;
+        }
+
+        p {
+            color: #d0d0ff;
+        }
+
+        pre {
+            background-color: #1a1a2e;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            border-left: 4px solid #4cd1a8;
+            margin: 15px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            color: #a0ffa0;
+            font-size: 0.95em;
+        }
+
+        .back-link {
+            position: fixed;
+            right: 30px;
+            top: 30px;
+            z-index: 1000;
+            color: #4cd1a8;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px 24px;
+            background-color: rgba(76, 209, 168, 0.15);
+            border: 2px solid rgba(76, 209, 168, 0.3);
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link:hover {
+            background-color: rgba(76, 209, 168, 0.25);
+            border-color: rgba(76, 209, 168, 0.5);
+            box-shadow: 0 6px 20px rgba(76, 209, 168, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .warning {
+            background-color: rgba(255, 159, 127, 0.1);
+            border-left: 4px solid #ff9f7f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .note {
+            background-color: rgba(76, 209, 168, 0.1);
+            border-left: 4px solid #4cd1a8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(76, 209, 168, 0.3);
+            text-align: center;
+        }
+
+        .footer-text {
+            color: #a0a0ff;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .contact-link {
+            color: #4cd1a8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .contact-link:hover {
+            color: #ff9f7f;
+            text-shadow: 0 0 5px rgba(255, 159, 127, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">← 返回主页</a>
+
+        <h1>LibDataFrame 使用指南</h1>
+
+        <p>LibDataFrame 是一个用于数据处理和分析的 C++ 库，API 风格极度模仿 Python 的 pandas 库。它提供高效的数据结构和算法，支持多种数据格式和操作，使 C++ 数据分析变得简单直观。</p>
+
+        <h2>📦 安装</h2>
+
+        <h3>从 GitHub 获取</h3>
+        <pre><code>git clone https://github.com/hosseinmoein/DataFrame.git
+cd DataFrame
+mkdir build && cd build
+cmake ..
+cmake --build .
+sudo make install</code></pre>
+
+        <h3>包含头文件</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;</code></pre>
+
+        <h2>🚀 基础使用</h2>
+
+        <h3>创建 DataFrame</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    // 创建一个 DataFrame
+    MyDataFrame df;
+
+    // 添加列
+    std::vector&lt;int&gt; ids = {1, 2, 3, 4, 5};
+    std::vector&lt;std::string&gt; names = {"Alice", "Bob", "Charlie", "David", "Eve"};
+    std::vector&lt;int&gt; ages = {25, 30, 35, 28, 32};
+
+    df.load_column("id", ids);
+    df.load_column("name", names);
+    df.load_column("age", ages);
+
+    // 显示 DataFrame
+    std::cout &lt;&lt; "DataFrame:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; df &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>读取 CSV 文件</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    // 从 CSV 文件读取
+    MyDataFrame df = MyDataFrame::read_csv("data.csv");
+
+    // 显示前几行
+    std::cout &lt;&lt; "First 5 rows:" &lt;&lt; std::endl;
+    df.get_head&lt;std::string, int&gt;({"name", "age"}, 5);
+
+    return 0;
+}</code></pre>
+
+        <h3>写入 CSV 文件</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df;
+
+    // 创建数据
+    std::vector&lt;int&gt; ids = {1, 2, 3};
+    std::vector&lt;std::string&gt; names = {"Alice", "Bob", "Charlie"};
+
+    df.load_column("id", ids);
+    df.load_column("name", names);
+
+    // 写入 CSV
+    df.write&lt;std::string&gt;("output.csv", false);
+
+    return 0;
+}</code></pre>
+
+        <h2>🔧 数据选择和过滤</h2>
+
+        <h3>筛选数据 (filter)</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df;
+
+    // 创建数据
+    std::vector&lt;int&gt; ages = {25, 30, 35, 28, 32, 40, 45};
+    std::vector&lt;std::string&gt; names = {"Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace"};
+    std::vector&lt;int&gt; scores = {85, 90, 95, 88, 92, 78, 96};
+
+    df.load_column("age", ages);
+    df.load_column("name", names);
+    df.load_column("score", scores);
+
+    // 筛选 age &gt; 30 的行
+    auto filtered_df = df.filter&lt;int&gt;("age", [](int age) {
+        return age &gt; 30;
+    });
+
+    std::cout &lt;&lt; "People older than 30:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; filtered_df &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>选择列</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df;
+
+    std::vector&lt;std::string&gt; names = {"Alice", "Bob", "Charlie"};
+    std::vector&lt;int&gt; ages = {25, 30, 35};
+    std::vector&lt;int&gt; scores = {85, 90, 95};
+
+    df.load_column("name", names);
+    df.load_column("age", ages);
+    df.load_column("score", scores);
+
+    // 选择特定列
+    auto selected = df.get_subset&lt;std::string, int&gt;({"name", "age"});
+
+    std::cout &lt;&lt; "Selected columns:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; selected &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>📊 数据排序</h2>
+
+        <h3>按列排序 (sort)</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df;
+
+    std::vector&lt;std::string&gt; names = {"Alice", "Bob", "Charlie", "David"};
+    std::vector&lt;int&gt; scores = {88, 92, 85, 95};
+
+    df.load_column("name", names);
+    df.load_column("score", scores);
+
+    // 按 score 升序排序
+    df.sort&lt;int&gt;("score", sort_order::ASCEND);
+
+    std::cout &lt;&lt; "Sorted by score (ascending):" &lt;&lt; std::endl;
+    std::cout &lt;&lt; df &lt;&lt; std::endl;
+
+    // 按 score 降序排序
+    df.sort&lt;int&gt;("score", sort_order::DESCEND);
+
+    std::cout &lt;&lt; "Sorted by score (descending):" &lt;&lt; std::endl;
+    std::cout &lt;&lt; df &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>📈 分组和聚合</h2>
+
+        <h3>GroupBy 和聚合操作</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+#include &lt;map&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df;
+
+    // 创建分组数据
+    std::vector&lt;std::string&gt; departments = {"IT", "HR", "IT", "Sales", "HR", "IT"};
+    std::vector&lt;std::string&gt; names = {"Alice", "Bob", "Charlie", "David", "Eve", "Frank"};
+    std::vector&lt;int&gt; salaries = {80000, 60000, 90000, 75000, 65000, 85000};
+
+    df.load_column("department", departments);
+    df.load_column("name", names);
+    df.load_column("salary", salaries);
+
+    // 按部门分组并计算平均薪资
+    auto result = df.groupby&lt;std::string&gt;(
+        "department",
+        MyDataFrame::groupby_ops::SUM,
+        std::vector&lt;std::string&gt;{"salary"}
+    );
+
+    std::cout &lt;&lt; "Total salary by department:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; result &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>自定义聚合函数</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+#include &lt;numeric&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df;
+
+    std::vector&lt;std::string&gt; groups = {"A", "B", "A", "B", "A"};
+    std::vector&lt;double&gt; values = {1.0, 2.0, 3.0, 4.0, 5.0};
+
+    df.load_column("group", groups);
+    df.load_column("value", values);
+
+    // 自定义聚合：计算平均值
+    auto mean_agg = [](const std::vector&lt;double&gt;& vec) {
+        if (vec.empty()) return 0.0;
+        double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
+        return sum / vec.size();
+    };
+
+    // 应用自定义聚合
+    auto grouped = df.groupby&lt;std::string&gt;("group", {{"value", mean_agg}});
+
+    std::cout &lt;&lt; "Mean by group:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; grouped &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>🔗 数据合并和连接</h2>
+
+        <h3>合并 DataFrame</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame df1, df2;
+
+    // 第一个 DataFrame
+    std::vector&lt;int&gt; ids1 = {1, 2, 3};
+    std::vector&lt;std::string&gt; names1 = {"Alice", "Bob", "Charlie"};
+
+    df1.load_column("id", ids1);
+    df1.load_column("name", names1);
+
+    // 第二个 DataFrame
+    std::vector&lt;int&gt; ids2 = {1, 2, 3};
+    std::vector&lt;int&gt; scores = {85, 90, 95};
+
+    df2.load_column("id", ids2);
+    df2.load_column("score", scores);
+
+    // 按列合并
+    auto merged = df1.join&lt;int&gt;(
+        df2,
+        join_type::INNER,
+        {"id"},
+        {"id"},
+        {"name"},
+        {"score"}
+    );
+
+    std::cout &lt;&lt; "Merged DataFrame:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; merged &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>💼 实际应用示例</h2>
+
+        <h3>数据分析流程</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+
+using namespace hmdf;
+
+int main() {
+    // 模拟销售数据
+    MyDataFrame sales_df;
+
+    std::vector&lt;std::string&gt; products = {"A", "B", "C", "A", "B", "C", "A"};
+    std::vector&lt;std::string&gt; regions = {"North", "South", "East", "North", "South", "East", "West"};
+    std::vector&lt;int&gt; quantities = {10, 20, 15, 5, 25, 12, 18};
+    std::vector&lt;double&gt; prices = {100.0, 200.0, 150.0, 100.0, 200.0, 150.0, 100.0};
+
+    sales_df.load_column("product", products);
+    sales_df.load_column("region", regions);
+    sales_df.load_column("quantity", quantities);
+    sales_df.load_column("price", prices);
+
+    // 计算总销售额
+    std::vector&lt;double&gt; total_sales;
+    for (size_t i = 0; i &lt; quantities.size(); ++i) {
+        total_sales.push_back(quantities[i] * prices[i]);
+    }
+    sales_df.load_column("total_sales", total_sales);
+
+    // 筛选销售额大于 1000 的记录
+    auto high_sales = sales_df.filter&lt;double&gt;("total_sales", [](double sales) {
+        return sales &gt; 2000.0;
+    });
+
+    std::cout &lt;&lt; "High sales records:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; high_sales &lt;&lt; std::endl;
+
+    // 按产品分组统计总销售额
+    auto by_product = sales_df.groupby&lt;std::string&gt;(
+        "product",
+        MyDataFrame::groupby_ops::SUM,
+        std::vector&lt;std::string&gt;{"total_sales"}
+    );
+
+    std::cout &lt;&lt; "Total sales by product:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; by_product &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h3>时间序列数据处理</h3>
+        <pre><code>#include &lt;DataFrame/DataFrame.h&gt;
+#include &lt;iostream&gt;
+#include &lt;chrono&gt;
+
+using namespace hmdf;
+
+int main() {
+    MyDataFrame time_df;
+
+    // 模拟时间序列数据
+    std::vector&lt;std::string&gt; timestamps = {
+        "2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"
+    };
+    std::vector&lt;double&gt; prices = {100.5, 102.3, 101.8, 103.2, 104.5};
+
+    time_df.load_column("timestamp", timestamps);
+    time_df.load_column("price", prices);
+
+    // 计算移动平均
+    std::vector&lt;double&gt; ma_3day;
+    for (size_t i = 0; i &lt; prices.size(); ++i) {
+        if (i &lt; 2) {
+            ma_3day.push_back(prices[i]);
+        } else {
+            double sum = prices[i] + prices[i-1] + prices[i-2];
+            ma_3day.push_back(sum / 3.0);
+        }
+    }
+    time_df.load_column("ma_3day", ma_3day);
+
+    std::cout &lt;&lt; "Time series with moving average:" &lt;&lt; std::endl;
+    std::cout &lt;&lt; time_df &lt;&lt; std::endl;
+
+    return 0;
+}</code></pre>
+
+        <h2>📋 常用操作速查</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>操作</th>
+                    <th>示例</th>
+                    <th>说明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>load_column()</code></td>
+                    <td><code>df.load_column("name", data)</code></td>
+                    <td>添加列</td>
+                </tr>
+                <tr>
+                    <td><code>filter()</code></td>
+                    <td><code>df.filter&lt;int&gt;("age", [](int x){return x&gt;30;})</code></td>
+                    <td>过滤行</td>
+                </tr>
+                <tr>
+                    <td><code>sort()</code></td>
+                    <td><code>df.sort&lt;int&gt;("age", ASCEND)</code></td>
+                    <td>排序</td>
+                </tr>
+                <tr>
+                    <td><code>groupby()</code></td>
+                    <td><code>df.groupby&lt;string&gt;("key", SUM, {"value"})</code></td>
+                    <td>分组聚合</td>
+                </tr>
+                <tr>
+                    <td><code>join()</code></td>
+                    <td><code>df1.join&lt;int&gt;(df2, INNER, {"id"}, {"id"})</code></td>
+                    <td>连接 DataFrame</td>
+                </tr>
+                <tr>
+                    <td><code>get_head()</code></td>
+                    <td><code>df.get_head&lt;int&gt;({"col"}, 5)</code></td>
+                    <td>获取前 N 行</td>
+                </tr>
+                <tr>
+                    <td><code>read_csv()</code></td>
+                    <td><code>MyDataFrame::read_csv("file.csv")</code></td>
+                    <td>读取 CSV</td>
+                </tr>
+                <tr>
+                    <td><code>write()</code></td>
+                    <td><code>df.write&lt;string&gt;("output.csv")</code></td>
+                    <td>写入 CSV</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note">
+            <strong>💡 提示：</strong> LibDataFrame 的 API 设计灵感来自 pandas，如果你熟悉 pandas，你会发现 LibDataFrame 的用法非常相似，让你在 C++ 中也能享受类似的数据分析体验。
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ 注意：</strong> 
+            <ul>
+                <li>LibDataFrame 需要 C++17 或更高版本</li>
+                <li>编译时需要链接相应的库文件</li>
+                <li>大型数据集操作时注意内存使用</li>
+                <li>某些高级功能可能需要额外的依赖</li>
+            </ul>
+        </div>
+
+        <h2>🔗 参考资料</h2>
+        <ul>
+            <li><a href="https://github.com/hosseinmoein/DataFrame" target="_blank" style="color: #4cd1a8;">LibDataFrame GitHub</a></li>
+            <li><a href="https://github.com/hosseinmoein/DataFrame/blob/master/README.md" target="_blank" style="color: #4cd1a8;">官方文档</a></li>
+        </ul>
+
+        <!-- 页脚 -->
+        <footer>
+            <p class="footer-text">&copy; 2026 C++ 开源库精选基地. 版权所有·LEVI</p>
+            <p class="footer-text">如有疑问，请联系: <a href="mailto:373102227@qq.com" class="contact-link">373102227@qq.com</a> 或 <a href="mailto:liweixs@gmail.com" class="contact-link">liweixs@gmail.com</a></p>
+        </footer>
+    </div>
+</body>
+</html>
